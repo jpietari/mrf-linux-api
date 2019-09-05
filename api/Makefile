@@ -1,34 +1,19 @@
 
 CC=gcc
 
-all: mmap_test simple evrsetup
+TARGETS := mmap_test simple evrsetup ESS evan_monitor evr_fifo_monitor factest dctest
 
-egapi.o: egapi.c egapi.h
-	$(CC) $(CFLAGS) -c egapi.c
+APIOBJECTS := egapi.o erapi.o fctapi.o fracdiv.o sfpdiag.o
 
-erapi.o: erapi.c erapi.h
-	$(CC) $(CFLAGS) -c erapi.c
+all: $(TARGETS) $(APIOBJECTS)
 
-fracdiv.o: fracdiv.c fracdiv.h
-	$(CC) $(CFLAGS) -c fracdiv.c
+% : %.c
 
-mmap_test.o: mmap_test.c egapi.h erapi.h egcpci.h
-	$(CC) $(CFLAGS) -c mmap_test.c
+% : %.o $(APIOBJECTS)
+	$(CC) $(LDFLAGS) -o $@ $< $(APIOBJECTS)
 
-mmap_test: mmap_test.o egapi.o erapi.o fracdiv.o
-	$(CC) $(LDFLAGS) -o $@ mmap_test.o egapi.o erapi.o fracdiv.o
-
-simple.o: simple.c egapi.h erapi.h egcpci.h
-	$(CC) $(CFLAGS) -c simple.c
-
-simple: simple.o egapi.o erapi.o fracdiv.o
-	$(CC) $(LDFLAGS) -o $@ simple.o egapi.o erapi.o fracdiv.o
-
-evrsetup.o: evrsetup.c egapi.h erapi.h egcpci.h
-	$(CC) $(CFLAGS) -c evrsetup.c
-
-evrsetup: evrsetup.o egapi.o erapi.o fracdiv.o
-	$(CC) $(LDFLAGS) -o $@ evrsetup.o egapi.o erapi.o fracdiv.o
+%.o : %.c $(APIDIR)/egapi.h $(APIDIR)/erapi.h $(APIDIR)/fctapi.h $(APIDIR)/fracdiv.h $(APIDIR)/sfpdiag.h
+	$(CC) $(CFLAGS) -c $<
 
 clean:
-	rm -rf *.o *~ mmap_test simple evrsetup
+	rm -rf *.o *~ $(TARGETS)

@@ -80,12 +80,28 @@ int EvrOpenWindow(struct MrfErRegs **pEr, char *device_name, int mem_window)
 
 int EvrOpen(struct MrfErRegs **pEr, char *device_name)
 {
-  return EvrOpenWindow(pEr, device_name, EVR_CPCI230_MEM_WINDOW);
+  int fd;
+
+  fd = EvrOpenWindow(pEr, device_name, EVR_CPCI230_MEM_WINDOW);
+  if (fd != -1)
+    {
+      /* Put device in BE mode */
+      (*pEr)->Control = ((*pEr)->Control) & ~0x02000002;
+    }
+  return fd;
 }
 
 int EvrTgOpen(struct MrfErRegs **pEr, char *device_name)
 {
-  return EvrOpenWindow(pEr, device_name, EVR_CPCI300TG_MEM_WINDOW);
+  int fd;
+
+  fd = EvrOpenWindow(pEr, device_name, EVR_CPCI300TG_MEM_WINDOW);
+  if (fd != -1)
+    {
+      /* Put device in BE mode */
+      (*pEr)->Control = ((*pEr)->Control) & ~0x02000002;
+    }
+  return fd;
 }
 
 #else
@@ -1382,25 +1398,25 @@ int EvrSetExtEvent(volatile struct MrfErRegs *pEr, int ttlin, int code, int edge
 {
   int fpctrl;
 
-  if (ttlin < 0 || ttlin > EVR_MAX_FPIN_MAP)
+  if (ttlin < 0 || ttlin > EVR_MAX_EXTIN_MAP)
     return -1;
 
-  fpctrl = be32_to_cpu(pEr->FPInMap[ttlin]);
+  fpctrl = be32_to_cpu(pEr->ExtinMap[ttlin]);
   if (code >= 0 && code <= EVR_MAX_EVENT_CODE)
     {
-      fpctrl &= ~(EVR_MAX_EVENT_CODE << C_EVR_FPIN_EXTEVENT_BASE);
-      fpctrl |= code << C_EVR_FPIN_EXTEVENT_BASE;
+      fpctrl &= ~(EVR_MAX_EVENT_CODE << C_EVR_EXTIN_EXTEVENT_BASE);
+      fpctrl |= code << C_EVR_EXTIN_EXTEVENT_BASE;
     }
-  fpctrl &= ~(1 << C_EVR_FPIN_EXT_ENABLE);
+  fpctrl &= ~(1 << C_EVR_EXTIN_EXT_ENABLE);
   if (edge_enable)
-    fpctrl |= (1 << C_EVR_FPIN_EXT_ENABLE);
+    fpctrl |= (1 << C_EVR_EXTIN_EXT_ENABLE);
 
-  fpctrl &= ~(1 << C_EVR_FPIN_EXTLEV_ENABLE);
+  fpctrl &= ~(1 << C_EVR_EXTIN_EXTLEV_ENABLE);
   if (level_enable)
-    fpctrl |= (1 << C_EVR_FPIN_EXTLEV_ENABLE);
+    fpctrl |= (1 << C_EVR_EXTIN_EXTLEV_ENABLE);
 
-  pEr->FPInMap[ttlin] = be32_to_cpu(fpctrl);
-  if (pEr->FPInMap[ttlin] == be32_to_cpu(fpctrl))
+  pEr->ExtinMap[ttlin] = be32_to_cpu(fpctrl);
+  if (pEr->ExtinMap[ttlin] == be32_to_cpu(fpctrl))
     return 0;
   return -1;
 }
@@ -1409,36 +1425,36 @@ int EvrGetExtEventCode(volatile struct MrfErRegs *pEr, int ttlin)
 {
   int fpctrl;
 
-  if (ttlin < 0 || ttlin > EVR_MAX_FPIN_MAP)
+  if (ttlin < 0 || ttlin > EVR_MAX_EXTIN_MAP)
     return -1;
 
-  fpctrl = be32_to_cpu(pEr->FPInMap[ttlin]);
-  return (fpctrl >> C_EVR_FPIN_EXTEVENT_BASE) & EVR_MAX_EVENT_CODE;
+  fpctrl = be32_to_cpu(pEr->ExtinMap[ttlin]);
+  return (fpctrl >> C_EVR_EXTIN_EXTEVENT_BASE) & EVR_MAX_EVENT_CODE;
 }
 
 int EvrSetBackEvent(volatile struct MrfErRegs *pEr, int ttlin, int code, int edge_enable, int level_enable)
 {
   int fpctrl;
 
-  if (ttlin < 0 || ttlin > EVR_MAX_FPIN_MAP)
+  if (ttlin < 0 || ttlin > EVR_MAX_EXTIN_MAP)
     return -1;
 
-  fpctrl = be32_to_cpu(pEr->FPInMap[ttlin]);
+  fpctrl = be32_to_cpu(pEr->ExtinMap[ttlin]);
   if (code >= 0 && code <= EVR_MAX_EVENT_CODE)
     {
-      fpctrl &= ~(EVR_MAX_EVENT_CODE << C_EVR_FPIN_BACKEVENT_BASE);
-      fpctrl |= code << C_EVR_FPIN_BACKEVENT_BASE;
+      fpctrl &= ~(EVR_MAX_EVENT_CODE << C_EVR_EXTIN_BACKEVENT_BASE);
+      fpctrl |= code << C_EVR_EXTIN_BACKEVENT_BASE;
     }
-  fpctrl &= ~(1 << C_EVR_FPIN_BACKEV_ENABLE);
+  fpctrl &= ~(1 << C_EVR_EXTIN_BACKEV_ENABLE);
   if (edge_enable)
-    fpctrl |= (1 << C_EVR_FPIN_BACKEV_ENABLE);
+    fpctrl |= (1 << C_EVR_EXTIN_BACKEV_ENABLE);
 
-  fpctrl &= ~(1 << C_EVR_FPIN_BACKLEV_ENABLE);
+  fpctrl &= ~(1 << C_EVR_EXTIN_BACKLEV_ENABLE);
   if (level_enable)
-    fpctrl |= (1 << C_EVR_FPIN_BACKLEV_ENABLE);
+    fpctrl |= (1 << C_EVR_EXTIN_BACKLEV_ENABLE);
 
-  pEr->FPInMap[ttlin] = be32_to_cpu(fpctrl);
-  if (pEr->FPInMap[ttlin] == be32_to_cpu(fpctrl))
+  pEr->ExtinMap[ttlin] = be32_to_cpu(fpctrl);
+  if (pEr->ExtinMap[ttlin] == be32_to_cpu(fpctrl))
     return 0;
   return -1;
 }
@@ -1447,16 +1463,16 @@ int EvrSetExtEdgeSensitivity(volatile struct MrfErRegs *pEr, int ttlin, int edge
 {
   int fpctrl;
 
-  if (ttlin < 0 || ttlin > EVR_MAX_FPIN_MAP)
+  if (ttlin < 0 || ttlin > EVR_MAX_EXTIN_MAP)
     return -1;
 
-  fpctrl = be32_to_cpu(pEr->FPInMap[ttlin]);
-  fpctrl &= ~(1 << C_EVR_FPIN_EXT_EDGE);
+  fpctrl = be32_to_cpu(pEr->ExtinMap[ttlin]);
+  fpctrl &= ~(1 << C_EVR_EXTIN_EXT_EDGE);
   if (edge)
-    fpctrl |= (1 << C_EVR_FPIN_EXT_EDGE);
+    fpctrl |= (1 << C_EVR_EXTIN_EXT_EDGE);
 
-  pEr->FPInMap[ttlin] = be32_to_cpu(fpctrl);
-  if (pEr->FPInMap[ttlin] == be32_to_cpu(fpctrl))
+  pEr->ExtinMap[ttlin] = be32_to_cpu(fpctrl);
+  if (pEr->ExtinMap[ttlin] == be32_to_cpu(fpctrl))
     return 0;
   return -1;
 }
@@ -1465,36 +1481,54 @@ int EvrSetExtLevelSensitivity(volatile struct MrfErRegs *pEr, int ttlin, int lev
 {
   int fpctrl;
 
-  if (ttlin < 0 || ttlin > EVR_MAX_FPIN_MAP)
+  if (ttlin < 0 || ttlin > EVR_MAX_EXTIN_MAP)
     return -1;
 
-  fpctrl = be32_to_cpu(pEr->FPInMap[ttlin]);
-  fpctrl &= ~(1 << C_EVR_FPIN_EXTLEV_ACT);
+  fpctrl = be32_to_cpu(pEr->ExtinMap[ttlin]);
+  fpctrl &= ~(1 << C_EVR_EXTIN_EXTLEV_ACT);
   if (level)
-    fpctrl |= (1 << C_EVR_FPIN_EXTLEV_ACT);
+    fpctrl |= (1 << C_EVR_EXTIN_EXTLEV_ACT);
 
-  pEr->FPInMap[ttlin] = be32_to_cpu(fpctrl);
-  if (pEr->FPInMap[ttlin] == be32_to_cpu(fpctrl))
+  pEr->ExtinMap[ttlin] = be32_to_cpu(fpctrl);
+  if (pEr->ExtinMap[ttlin] == be32_to_cpu(fpctrl))
     return 0;
   return -1;
 }
+
+int EvrGetExtInStatus(volatile struct MrfErRegs *pEr, int extin)
+{
+  int fpctrl;
+
+  if (extin < 0 || extin > EVR_MAX_EXTIN_MAP)
+    return -1;
+
+  fpctrl = be32_to_cpu(pEr->ExtinMap[extin]);
+
+  if (fpctrl & (1 << C_EVR_EXTIN_STATUS))
+    return 1;
+  else
+    return 0;
+}
+
+int EvrGetUnivInStatus(volatile struct MrfErRegs *pEr, int univin);
+int EvrGetBPInStatus(volatile struct MrfErRegs *pEr, int bpin);
 
 int EvrSetBackDBus(volatile struct MrfErRegs *pEr, int ttlin, int dbus)
 {
   int fpctrl;
 
-  if (ttlin < 0 || ttlin > EVR_MAX_FPIN_MAP)
+  if (ttlin < 0 || ttlin > EVR_MAX_EXTIN_MAP)
     return -1;
 
   if (dbus < 0 || dbus > 255)
     return -1;
 
-  fpctrl = be32_to_cpu(pEr->FPInMap[ttlin]);
-  fpctrl &= ~(255 << C_EVR_FPIN_BACKDBUS_BASE);
-  fpctrl |= dbus << C_EVR_FPIN_BACKDBUS_BASE;
+  fpctrl = be32_to_cpu(pEr->ExtinMap[ttlin]);
+  fpctrl &= ~(255 << C_EVR_EXTIN_BACKDBUS_BASE);
+  fpctrl |= dbus << C_EVR_EXTIN_BACKDBUS_BASE;
 
-  pEr->FPInMap[ttlin] = be32_to_cpu(fpctrl);
-  if (pEr->FPInMap[ttlin] == be32_to_cpu(fpctrl))
+  pEr->ExtinMap[ttlin] = be32_to_cpu(fpctrl);
+  if (pEr->ExtinMap[ttlin] == be32_to_cpu(fpctrl))
     return 0;
   return -1;
 
@@ -1839,4 +1873,19 @@ void EvrSeqRamStatus(volatile struct MrfErRegs *pEr, int ram)
   if (control & (1 << C_EVR_SQRC_RECYCLE))
     DEBUG_PRINTF(" RECYCLE");
   DEBUG_PRINTF(" Trigsel %02x\n", (control >> C_EVR_SQRC_TRIGSEL_LOW) & C_EVR_SEQTRIG_MAX);
+}
+
+int EvrGetTopologyID(volatile struct MrfErRegs *pEr)
+{
+  return be32_to_cpu(pEr->TopologyID);
+}
+
+int EvrGetDCStatus(volatile struct MrfErRegs *pEr)
+{
+  return be32_to_cpu(pEr->dc_status);
+}
+
+int EvrGetDCDelay(volatile struct MrfErRegs *pEr)
+{
+  return be32_to_cpu(pEr->dc_int_value) + be32_to_cpu(pEr->dc_value);
 }

@@ -43,6 +43,7 @@
 #include <string.h>
 #include "egapi.h"
 #include "erapi.h"
+#include "fracdiv.h"
 
 /*
 #define DEBUG 1
@@ -73,6 +74,8 @@ int EvgOpen(struct MrfEgRegs **pEg, char *device_name)
 	  close(fd);
 	  return -1;
 	}
+      /* Put device in BE mode */
+      (*pEg)->Control = ((*pEg)->Control) & (~0x02000002);
     }
 
   return fd;
@@ -469,6 +472,8 @@ int EvgSetRFInput(volatile struct MrfEgRegs *pEg, int RFsel, int div)
 
 int EvgSetFracDiv(volatile struct MrfEgRegs *pEg, int fracdiv)
 {
+  pEg->UsecDiv = be32_to_cpu((int) cw_to_freq(fracdiv));
+
   return be32_to_cpu(pEg->FracDiv = be32_to_cpu(fracdiv));
 }
 

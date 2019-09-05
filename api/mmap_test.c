@@ -19,7 +19,7 @@
 
 #define DEVICE "/dev/mrfevr3"
 
-#define MEM_WINDOW_TG 0x00100000
+#define MEM_WINDOW_TG 0x00040000
 #define MEM_WINDOW    0x00010000
 
 #ifndef be16_to_cpu

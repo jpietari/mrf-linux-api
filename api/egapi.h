@@ -11,7 +11,7 @@
   Note: Byte ordering is big-endian.
  */
 
-#define EVG_MEM_WINDOW      0x00010000
+#define EVG_MEM_WINDOW      0x00040000
 
 #ifndef u16
 #define u16 unsigned short
@@ -130,6 +130,9 @@ struct MrfEgRegs {
   struct SeqRamItemStruct SeqRam[EVG_SEQRAMS][EVG_MAX_SEQRAMEV];
                                             /* 8000-BFFF: Sequence RAM 1 */
                                             /* C000-FFFF: Sequence RAM 2 */
+  u32  Fct[0x4000];
+  u32  EvrD[0x4000];
+  u32  EvrU[0x4000];
 };
 
 /* -- Status Register bit mappings */

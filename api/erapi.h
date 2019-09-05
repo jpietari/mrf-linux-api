@@ -43,9 +43,10 @@
 #define EVR_MAX_UNIVOUT_MAP 32
 #define EVR_MAX_TBOUT_MAP   32
 #define EVR_MAX_BPOUT_MAP   32
-#define EVR_MAX_FPIN_MAP    16
-#define EVR_MAX_UNIVIN_MAP  16
-#define EVR_MAX_TBIN_MAP    64
+#define EVR_MAX_EXTIN_MAP   32
+#define EVR_MAX_FPIN_MAP    4
+#define EVR_MAX_UNIVIN_MAP  20
+#define EVR_MAX_BPIN_MAP    8
 #define EVR_MAX_BUFFER      2048
 #define EVR_MIN_BUF_SEGMENT 0
 #define EVR_MAX_BUF_SEGMENT 127
@@ -155,7 +156,7 @@ struct MrfErRegs {
   u32  dc_value;
   u32  dc_int_value;
   u32  dc_status;
-  u32  Resv0x00C0;                          /* 00C0: Reserved */
+  u32  TopologyID;                          /* 00C0: Timing node Topology ID */
   u32  ECP3delay_control;                   /* 00C4: cPCI-EVR-300 fifo delay control */
   u32  Resv0x00C8to0x00DC[(0x0E0-0x0C8)/4]; /* 00C8-00DF: Reserved */
   u32  SeqRamControl[EVR_MAX_SEQRAMS];      /* 00E0-00EF: Sequence RAM Control */
@@ -172,8 +173,7 @@ struct MrfErRegs {
   u16  UnivOutMap[EVR_MAX_UNIVOUT_MAP];     /* 0440-047F: Universal I/O output mapping */
   u16  TBOutMap[EVR_MAX_TBOUT_MAP];         /* 0480-04BF: TB output mapping */
   u16  BPOutMap[EVR_MAX_BPOUT_MAP];         /* 04C0-04FF: Backplane output mapping */
-  u32  FPInMap[EVR_MAX_FPIN_MAP];           /* 0500-053F: Front panel input mapping */
-  u32  UnivInMap[EVR_MAX_UNIVIN_MAP];       /* 0540-057F: Universal I/O input mapping */
+  u32  ExtinMap[EVR_MAX_EXTIN_MAP];         /* 0500-057F: Front panel/Univ/BP input mapping */
   u32  FineDelay[EVR_MAX_CML_OUTPUTS];      /* 0580-059F: Fine delay for GTX Outputs */
   u32  Resv0x05A0[(0x600-0x5A0)/4];         /* 05A0-05FF: Reserved */
   struct CMLStruct CML[EVR_MAX_CML_OUTPUTS];/* 0600-06FF: CML Output Structures */
@@ -362,16 +362,17 @@ struct MrfErRegs {
 #define EVR_UNIV_DLY_SCLK   0x02
 #define EVR_UNIV_DLY_LCLK   0x04
 #define EVR_UNIV_DLY_DIS    0x08
-/* -- FP Input Mapping bits */
-#define C_EVR_FPIN_EXTEVENT_BASE   0
-#define C_EVR_FPIN_BACKEVENT_BASE  8
-#define C_EVR_FPIN_BACKDBUS_BASE   16
-#define C_EVR_FPIN_EXT_ENABLE      24
-#define C_EVR_FPIN_BACKEV_ENABLE   25
-#define C_EVR_FPIN_EXT_EDGE        26
-#define C_EVR_FPIN_EXTLEV_ENABLE   27
-#define C_EVR_FPIN_BACKLEV_ENABLE  28
-#define C_EVR_FPIN_EXTLEV_ACT      29
+/* -- External Input Mapping bits */
+#define C_EVR_EXTIN_EXTEVENT_BASE   0
+#define C_EVR_EXTIN_BACKEVENT_BASE  8
+#define C_EVR_EXTIN_BACKDBUS_BASE   16
+#define C_EVR_EXTIN_EXT_ENABLE      24
+#define C_EVR_EXTIN_BACKEV_ENABLE   25
+#define C_EVR_EXTIN_EXT_EDGE        26
+#define C_EVR_EXTIN_EXTLEV_ENABLE   27
+#define C_EVR_EXTIN_BACKLEV_ENABLE  28
+#define C_EVR_EXTIN_EXTLEV_ACT      29
+#define C_EVR_EXTIN_STATUS          31
 
 /* ioctl commands */
 #define EV_IOC_MAGIC 220
@@ -487,6 +488,7 @@ int EvrGetExtEventCode(volatile struct MrfErRegs *pEr, int ttlin);
 int EvrSetBackEvent(volatile struct MrfErRegs *pEr, int ttlin, int code, int edge_enable, int level_enable);
 int EvrSetExtEdgeSensitivity(volatile struct MrfErRegs *pEr, int ttlin, int edge);
 int EvrSetExtLevelSensitivity(volatile struct MrfErRegs *pEr, int ttlin, int level);
+int EvrGetExtInStatus(volatile struct MrfErRegs *pEr, int extin);
 int EvrSetBackDBus(volatile struct MrfErRegs *pEr, int ttlin, int dbus);
 int EvrSetTxDBufMode(volatile struct MrfErRegs *pEr, int enable);
 int EvrGetTxDBufStatus(volatile struct MrfErRegs *pEr);
@@ -510,3 +512,6 @@ void EvrSeqRamDump(volatile struct MrfErRegs *pEr, int ram);
 int EvrSeqRamControl(volatile struct MrfErRegs *pEr, int ram, int enable, int single, int recycle, int reset, int trigsel);
 int EvrSeqRamSWTrig(volatile struct MrfErRegs *pEr, int trig);
 void EvrSeqRamStatus(volatile struct MrfErRegs *pEr, int ram);
+int EvrGetTopologyID(volatile struct MrfErRegs *pEr);
+int EvrGetDCStatus(volatile struct MrfErRegs *pEr);
+int EvrGetDCDelay(volatile struct MrfErRegs *pEr);
