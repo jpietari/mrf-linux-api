@@ -1,3 +1,10 @@
+/**
+@file fctapi.c
+@brief MRF Event Master Fan-Out Concentrator specific functions.
+@author Jukka Pietarinen
+@date 8/12/2019
+*/
+
 #ifdef __unix__
 #include <stdint.h>
 #include <sys/types.h>
@@ -10,7 +17,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <sys/ioctl.h>
-#else /* assume VxWorks */
+#else /* If not Linux, assume VxWorks */
 #ifndef VXWORKS
 #define VXWORKS 1
 #endif
@@ -37,6 +44,12 @@
 #include "fctapi.h"
 #include "sfpdiag.h"
 
+/**
+* Prints out Fan-Out Concentrator Delay Compensation status.
+ * @param pFct MrfFctRegs structure.
+ * @param reffreq Reference frequency in MHz.
+ * @param ports Number of Concentrator ports.
+*/ 
 void FctDumpStatus(volatile struct MrfFctRegs *pFct, double reffreq, int ports)
 {
   int i;
@@ -95,6 +108,12 @@ void FctDumpStatus(volatile struct MrfFctRegs *pFct, double reffreq, int ports)
     }
 }
 
+/**
+ * Clear violation flags for concentrator input port.
+ * @param pFct MrfFctRegs structure.
+ * @param clear Bit mask for ports to try to clear the violation flag, LSB is for port 1.
+ * @return Returns violation flag status before trying to clear flags.
+*/ 
 int FctGetViolation(volatile struct MrfFctRegs *pFct, int clear)
 {
   int vio;

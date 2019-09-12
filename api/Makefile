@@ -5,7 +5,7 @@ TARGETS := mmap_test simple evrsetup ESS evan_monitor evr_fifo_monitor factest d
 
 APIOBJECTS := egapi.o erapi.o fctapi.o fracdiv.o sfpdiag.o
 
-all: $(TARGETS) $(APIOBJECTS)
+all: $(TARGETS) $(APIOBJECTS) doc
 
 % : %.c
 
@@ -17,3 +17,7 @@ all: $(TARGETS) $(APIOBJECTS)
 
 clean:
 	rm -rf *.o *~ $(TARGETS)
+
+doc:
+	doxygen
+	$(MAKE) -C latex -f Makefile

@@ -1,10 +1,9 @@
-/*
-  erapi.c -- Functions for Micro-Research Event Receiver
-             Application Programming Interface
-
-  Author: Jukka Pietarinen (MRF)
-  Date:   08.12.2006
-
+/**
+@file erapi.c
+@brief Functions for Micro-Research Event Receiver
+       Application Programming Interface.
+@author Jukka Pietarinen (MRF)
+@date 12/8/2006
 */
 
 #ifdef __unix__
@@ -50,6 +49,7 @@
 #define DEBUG_PRINTF printf
 
 #ifdef __unix__
+/** @private */
 int EvrOpenWindow(struct MrfErRegs **pEr, char *device_name, int mem_window)
 {
   int fd;
@@ -78,6 +78,12 @@ int EvrOpenWindow(struct MrfErRegs **pEr, char *device_name, int mem_window)
   return fd;
 }
 
+/**
+Opens evr device and mmaps the register map into user space.
+@param pEr Pointer to pointer of memory mapped MrfErRegs structure.
+@param device_name Name of device e.g. /dev/era3.
+@return Returns file descriptor of opened file, -1 on error.
+*/
 int EvrOpen(struct MrfErRegs **pEr, char *device_name)
 {
   int fd;
@@ -91,6 +97,13 @@ int EvrOpen(struct MrfErRegs **pEr, char *device_name)
   return fd;
 }
 
+/**
+Opens evr device (cPCI-EVRTG-300) with larger register map and mmaps
+the register map into user space.
+@param pEr Pointer to pointer of memory mapped MrfErRegs structure.
+@param device_name Name of device e.g. /dev/ertga3.
+@return Returns file descriptor of opened file, -1 on error.
+*/
 int EvrTgOpen(struct MrfErRegs **pEr, char *device_name)
 {
   int fd;
@@ -112,6 +125,7 @@ int EvrOpen(struct MrfErRegs **pEg, char *device_name)
 #endif
 
 #ifdef __unix__
+/** @private */
 int EvrCloseWindow(int fd, int mem_window)
 {
   int result;
@@ -120,11 +134,21 @@ int EvrCloseWindow(int fd, int mem_window)
   return close(fd);
 }
 
+/**
+Close evr device opened with EvrOpen.
+@param fd File descriptor of evr device returned by EvrOpen.
+@return Returns 0 on successful completion.
+*/
 int EvrClose(int fd)
 {
   return EvrCloseWindow(fd, EVR_CPCI230_MEM_WINDOW);
 }
 
+/**
+Close evr device opened with EvrTgOpen.
+@param fd File descriptor of evr device returned by EvrTgOpen.
+@return Returns 0 on successful completion.
+*/
 int EvrTgClose(int fd)
 {
   return EvrCloseWindow(fd, EVR_CPCI300TG_MEM_WINDOW);
@@ -137,11 +161,22 @@ int EvrClose(int fd)
 }
 #endif
 
+/**
+Retrieve EVR firmware version.
+@param pEr Pointer to MrfErRegs structure
+@return Returns firmware version
+*/
 u32 EvrFWVersion(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->FPGAVersion);
 }
 
+/**
+Enable/disable EVR.
+@param pEr Pointer to MrfErRegs structure
+@param state 0 - disable, 1 - enable
+@return Returns state read back from EVR.
+*/
 int EvrEnable(volatile struct MrfErRegs *pEr, int state)
 {
   if (state)
@@ -152,6 +187,15 @@ int EvrEnable(volatile struct MrfErRegs *pEr, int state)
   return EvrGetEnable(pEr);
 }
 
+/**
+Enable/disable EVR Delay Compensation. In delay compensation mode the EVR adjust its internal delay compensation FIFO so that the total system delay matches the set up target delay value.
+
+When the EVR is not in delay compensation mode the FIFO depth is adjusted directly to match the target delay value. 
+
+@param pEr Pointer to MrfErRegs structure
+@param state 0 - disable, 1 - enable
+@return Returns state read back from EVR.
+*/
 int EvrDCEnable(volatile struct MrfErRegs *pEr, int state)
 {
   if (state)
@@ -162,6 +206,13 @@ int EvrDCEnable(volatile struct MrfErRegs *pEr, int state)
   return EvrGetDCEnable(pEr);
 }
 
+/**
+Control output enable for external I/O box IFB-300.
+
+@param pEr Pointer to MrfErRegs structure
+@param state 0 - disable, 1 - enable
+@return Returns state read back from EVR.
+*/
 int EvrOutputEnable(volatile struct MrfErRegs *pEr, int state)
 {
   if (state)
@@ -172,16 +223,32 @@ int EvrOutputEnable(volatile struct MrfErRegs *pEr, int state)
   return EvrGetEnable(pEr);
 }
 
+/**
+Get EVR state.
+@param pEr Pointer to MrfErRegs structure
+@return Returns EVR state, 0 - disabled, non-zero - enabled.
+*/
 int EvrGetEnable(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->Control & be32_to_cpu(1 << C_EVR_CTRL_MASTER_ENABLE));
 }
 
+/**
+Get EVR delay compensation state.
+@param pEr Pointer to MrfErRegs structure
+@return Returns EVR delay compensation state, 0 - disabled, non-zero - enabled.
+*/
 int EvrGetDCEnable(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->Control & be32_to_cpu(1 << C_EVR_CTRL_DC_ENABLE));
 }
 
+/**
+Get/clear EVR link violation flag. The link violation flag is set when an event link receive error is detected. The EVR powers up with this flag set.
+@param pEr Pointer to MrfErRegs structure
+@param clear 0 - just read, do not try to clear, 1 - clear violation flag
+@return Returns EVR link violation flag state, 0 - no violation, non-zero - violation detected.
+*/
 int EvrGetViolation(volatile struct MrfErRegs *pEr, int clear)
 {
   int result;
@@ -193,6 +260,10 @@ int EvrGetViolation(volatile struct MrfErRegs *pEr, int clear)
   return result;
 }
 
+/**
+Display EVR status.
+@param pEr Pointer to MrfErRegs structure
+*/
 void EvrDumpStatus(volatile struct MrfErRegs *pEr)
 {
   int result;
@@ -262,6 +333,11 @@ void EvrDumpStatus(volatile struct MrfErRegs *pEr)
   DEBUG_PRINTF("DataBufControl %08x\n", result);
 }
 
+/**
+Display EVR event mapping ram contents.
+@param pEr Pointer to MrfErRegs structure
+@param ram mapping ram number 0, 1.
+*/
 int EvrDumpMapRam(volatile struct MrfErRegs *pEr, int ram)
 {
   uint32_t code;
@@ -317,6 +393,12 @@ int EvrDumpMapRam(volatile struct MrfErRegs *pEr, int ram)
   return 0;
 }
 
+/**
+Enable EVR event mapping ram.
+@param pEr Pointer to MrfErRegs structure
+@param ram mapping ram number 0 or 1.
+@param enable 0 - disable, 1 - enable.
+*/
 int EvrMapRamEnable(volatile struct MrfErRegs *pEr, int ram, int enable)
 {
   int result;
@@ -335,6 +417,21 @@ int EvrMapRamEnable(volatile struct MrfErRegs *pEr, int ram, int enable)
   return result;
 }
 
+/**
+Set pulse generator action on received event code.
+
+Each decoded event code can be programmed to trigger, set or clear any
+pulse generator output. This function is used to set up mappings.
+
+Please note that this function does not clear any existing mappings. To clear mapping see function EvrClearPulseMap().
+
+@param pEr Pointer to MrfErRegs structure
+@param ram Mapping RAM number 0 or 1.
+@param code Event code to make changes to
+@param trig Pulse generator number to trigger, -1 no action
+@param set Pulse generator output number to set, -1 no action
+@param clear Pulse genertor output number to clear, -1 no action
+*/
 int EvrSetPulseMap(volatile struct MrfErRegs *pEr, int ram, int code, int trig,
 		   int set, int clear)
 {
@@ -354,6 +451,18 @@ int EvrSetPulseMap(volatile struct MrfErRegs *pEr, int ram, int code, int trig,
   return 0;
 }
 
+/**
+Set up event code forwarding.
+
+This function sets up event code forwarding in a mapping RAM. To
+enable/disable event code forwarding use function
+EvrEnableEventForwarding().
+
+@param pEr Pointer to MrfErRegs structure
+@param ram Mapping RAM number 0 or 1.
+@param code Event code to make changes to
+@param enable 0 - disable event forwarding for event code, 1 - enable event forwarding for event code
+*/
 int EvrSetForwardEvent(volatile struct MrfErRegs *pEr, int ram, int code, int enable)
 {
   if (ram < 0 || ram >= EVR_MAPRAMS)
@@ -370,6 +479,12 @@ int EvrSetForwardEvent(volatile struct MrfErRegs *pEr, int ram, int code, int en
   return 0;
 }
 
+/**
+Enable/disable event forwarding.
+
+@param pEr Pointer to MrfErRegs structure
+@param enable 0 - disable event forwarding, 1 - enable event forwarding
+*/
 int EvrEnableEventForwarding(volatile struct MrfErRegs *pEr, int enable)
 {
   if (enable)
@@ -380,11 +495,27 @@ int EvrEnableEventForwarding(volatile struct MrfErRegs *pEr, int enable)
   return EvrGetEventForwarding(pEr);
 }
 
+/**
+Retrieve event forwarding state.
+
+@param pEr Pointer to MrfErRegs structure
+@return 0 - Event forwarding disabled, non-zero - Event forwarding enabled.
+*/
 int EvrGetEventForwarding(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->Control & be32_to_cpu(1 << C_EVR_CTRL_EVENT_FWD_ENA));
 }
 
+/**
+Set up event codes that flash the event LED.
+
+This function sets up event codes in a mapping RAM that flash the event LED.
+
+@param pEr Pointer to MrfErRegs structure
+@param ram Mapping RAM number 0 or 1.
+@param code Event code to make changes to
+@param enable 0 - disable event LED flashing for event code, 1 - enable event LED flashing for event code
+*/
 int EvrSetLedEvent(volatile struct MrfErRegs *pEr, int ram, int code, int enable)
 {
   if (ram < 0 || ram >= EVR_MAPRAMS)
@@ -401,6 +532,16 @@ int EvrSetLedEvent(volatile struct MrfErRegs *pEr, int ram, int code, int enable
   return 0;
 }
 
+/**
+Set up event codes that get stored into the event FIFO.
+
+This function sets up event codes in a mapping RAM that get stored into the event FIFO.
+
+@param pEr Pointer to MrfErRegs structure
+@param ram Mapping RAM number 0 or 1.
+@param code Event code to store into the event FIFO
+@param enable 0 - disable storing event code, 1 - enable storing event code
+*/
 int EvrSetFIFOEvent(volatile struct MrfErRegs *pEr, int ram, int code, int enable)
 {
   if (ram < 0 || ram >= EVR_MAPRAMS)
@@ -417,6 +558,16 @@ int EvrSetFIFOEvent(volatile struct MrfErRegs *pEr, int ram, int code, int enabl
   return 0;
 }
 
+/**
+Set up event codes that get latch the timestamp.
+
+This function sets up event codes in a mapping RAM that latch the timestamp into the timestamp latch register.
+
+@param pEr Pointer to MrfErRegs structure
+@param ram Mapping RAM number 0 or 1.
+@param code Event code to latch timestamp
+@param enable 0 - disable timestamp latching for event code, 1 - enable timestamp latching for event code
+*/
 int EvrSetLatchEvent(volatile struct MrfErRegs *pEr, int ram, int code, int enable)
 {
   if (ram < 0 || ram >= EVR_MAPRAMS)
@@ -433,6 +584,16 @@ int EvrSetLatchEvent(volatile struct MrfErRegs *pEr, int ram, int code, int enab
   return 0;
 }
 
+/**
+Set up event codes that get stored into the event log.
+
+This function sets up event codes in a mapping RAM that get stored into the event log.
+
+@param pEr Pointer to MrfErRegs structure
+@param ram Mapping RAM number 0 or 1.
+@param code Event code to store into the event log
+@param enable 0 - disable storing event code, 1 - enable storing event code
+*/
 int EvrSetLogEvent(volatile struct MrfErRegs *pEr, int ram, int code, int enable)
 {
   if (ram < 0 || ram >= EVR_MAPRAMS)
@@ -449,6 +610,16 @@ int EvrSetLogEvent(volatile struct MrfErRegs *pEr, int ram, int code, int enable
   return 0;
 }
 
+/**
+Set up event codes that get stop the event log.
+
+This function sets up event codes in a mapping RAM that get stop the event log.
+
+@param pEr Pointer to MrfErRegs structure
+@param ram Mapping RAM number 0 or 1.
+@param code Event code to stop the event log
+@param enable 0 - disable "stop log" for event code, 1 - enable "stop log" for event code
+*/
 int EvrSetLogStopEvent(volatile struct MrfErRegs *pEr, int ram, int code, int enable)
 {
   if (ram < 0 || ram >= EVR_MAPRAMS)
@@ -465,6 +636,11 @@ int EvrSetLogStopEvent(volatile struct MrfErRegs *pEr, int ram, int code, int en
   return 0;
 }
 
+/**
+Clear the event FIFO.
+
+@param pEr Pointer to MrfErRegs structure
+*/
 int EvrClearFIFO(volatile struct MrfErRegs *pEr)
 {
   int ctrl;
@@ -476,6 +652,13 @@ int EvrClearFIFO(volatile struct MrfErRegs *pEr)
   return be32_to_cpu(pEr->Control);
 }
 
+/**
+Pull FIFOEvent entry from the event FIFO.
+
+@param pEr Pointer to MrfErRegs structure
+@param fe Pointer to FIFOEvent structure
+@return 0 - on success, -1 on error (FIFO empty)
+*/
 int EvrGetFIFOEvent(volatile struct MrfErRegs *pEr, struct FIFOEvent *fe)
 {
   int stat;
@@ -492,6 +675,12 @@ int EvrGetFIFOEvent(volatile struct MrfErRegs *pEr, struct FIFOEvent *fe)
     return -1;
 }
 
+/**
+Enable/disable event log.
+
+@param pEr Pointer to MrfErRegs structure
+@param enable 0 - Disable logging of events, 1 - enable logging
+*/
 int EvrEnableLog(volatile struct MrfErRegs *pEr, int enable)
 {
   if (enable)
@@ -502,11 +691,23 @@ int EvrEnableLog(volatile struct MrfErRegs *pEr, int enable)
   return EvrGetLogState(pEr);
 }
 
+/**
+Retrieve event log state.
+
+@param pEr Pointer to MrfErRegs structure
+@return 0 - event log disabled, 1 - event log enabled (logging events)
+*/
 int EvrGetLogState(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->Status & be32_to_cpu(1 << C_EVR_STATUS_LOG_STOPPED));
 }
 
+/**
+Retrieve event log start position in ring buffer.
+
+@param pEr Pointer to MrfErRegs structure
+@return Start position of event log (oldest entry in ring buffer)
+*/
 int EvrGetLogStart(volatile struct MrfErRegs *pEr)
 {
   int pos;
@@ -518,6 +719,12 @@ int EvrGetLogStart(volatile struct MrfErRegs *pEr)
     return (pos & (EVR_LOG_SIZE - 1));
 }
 
+/**
+Retrieve number of entries in event log ring buffer.
+
+@param pEr Pointer to MrfErRegs structure
+@return Number of entries in event log. When return value equals length of log EVR_LOG_SIZE, the log may have rolled over and older events might be lost.
+*/
 int EvrGetLogEntries(volatile struct MrfErRegs *pEr)
 {
   int pos;
@@ -529,6 +736,12 @@ int EvrGetLogEntries(volatile struct MrfErRegs *pEr)
     return EVR_LOG_SIZE;
 }
 
+/**
+Enable "stop log" events.
+
+@param pEr Pointer to MrfErRegs structure
+@param enable 0 - disable stopping log by event codes that have the "stop log" bit set in the event mapping RAM, 1 - enable "stop log" event codes to stop the log.
+*/
 int EvrEnableLogStopEvent(volatile struct MrfErRegs *pEr, int enable)
 {
   if (enable)
@@ -539,11 +752,22 @@ int EvrEnableLogStopEvent(volatile struct MrfErRegs *pEr, int enable)
   return EvrGetLogStopEvent(pEr);
 }
 
+/**
+Retrieve state of "stop log" events.
+
+@param pEr Pointer to MrfErRegs structure
+@return 0 - log is not stopped by event codes that have the "stop log" bit set in the event mapping RAM, 1 - log gets stopped by "stop log" event codes.
+*/
 int EvrGetLogStopEvent(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->Control & be32_to_cpu(1 << C_EVR_CTRL_LOG_STOP_EV_EN));
 }
 
+/**
+Shows and purges the event FIFO contents.
+
+@param pEr Pointer to MrfErRegs structure
+*/
 int EvrDumpFIFO(volatile struct MrfErRegs *pEr)
 {
   struct FIFOEvent fe;
@@ -563,6 +787,11 @@ int EvrDumpFIFO(volatile struct MrfErRegs *pEr)
   return 0;
 }
 
+/**
+Clears the event log.
+
+@param pEr Pointer to MrfErRegs structure
+*/
 int EvrClearLog(volatile struct MrfErRegs *pEr)
 {
   int ctrl;
@@ -574,6 +803,11 @@ int EvrClearLog(volatile struct MrfErRegs *pEr)
   return be32_to_cpu(pEr->Control);
 }
 
+/**
+Shows the event log contents.
+
+@param pEr Pointer to MrfErRegs structure
+*/
 int EvrDumpLog(volatile struct MrfErRegs *pEr)
 {
   int pos, i, j;
@@ -595,6 +829,16 @@ int EvrDumpLog(volatile struct MrfErRegs *pEr)
   return 0;
 }
 
+/**
+Clear pulse generator action on received event code.
+
+@param pEr Pointer to MrfErRegs structure
+@param ram Mapping RAM number 0 or 1.
+@param code Event code
+@param trig Pulse generator number to clear trigger mapping, -1 no action
+@param set Pulse generator output number to reset set mapping, -1 no action
+@param clear pulse genertor output number to reset clear mapping, -1 no action
+*/
 int EvrClearPulseMap(volatile struct MrfErRegs *pEr, int ram, int code, int trig,
 		     int set, int clear)
 {
@@ -614,6 +858,15 @@ int EvrClearPulseMap(volatile struct MrfErRegs *pEr, int ram, int code, int trig
   return 0;
 }
 
+/**
+Set up pulse generator time parameters.
+
+@param pEr Pointer to MrfErRegs structure
+@param pulse Number of pulse generator
+@param presc Prescaler value
+@param delay Pulse Delay value
+@param width Pulse width value
+*/
 int EvrSetPulseParams(volatile struct MrfErRegs *pEr, int pulse, int presc,
 		      int delay, int width)
 {
@@ -627,6 +880,13 @@ int EvrSetPulseParams(volatile struct MrfErRegs *pEr, int pulse, int presc,
   return 0;
 }
 
+/**
+Retrieve pulse generator prescaler value.
+
+@param pEr Pointer to MrfErRegs structure
+@param pulse Number of pulse generator
+@return Pulse generator prescaler value.
+*/
 int EvrGetPulsePresc(volatile struct MrfErRegs *pEr, int pulse)
 {
   if (pulse < 0 || pulse >= EVR_MAX_PULSES)
@@ -635,6 +895,13 @@ int EvrGetPulsePresc(volatile struct MrfErRegs *pEr, int pulse)
   return be32_to_cpu(pEr->Pulse[pulse].Prescaler);
 }
 
+/**
+Retrieve pulse generator delay value.
+
+@param pEr Pointer to MrfErRegs structure
+@param pulse Number of pulse generator
+@return Pulse generator delay value.
+*/
 int EvrGetPulseDelay(volatile struct MrfErRegs *pEr, int pulse)
 {
   if (pulse < 0 || pulse >= EVR_MAX_PULSES)
@@ -643,6 +910,13 @@ int EvrGetPulseDelay(volatile struct MrfErRegs *pEr, int pulse)
   return be32_to_cpu(pEr->Pulse[pulse].Delay);
 }
 
+/**
+Retrieve pulse generator width value.
+
+@param pEr Pointer to MrfErRegs structure
+@param pulse Number of pulse generator
+@return Pulse generator width value.
+*/
 int EvrGetPulseWidth(volatile struct MrfErRegs *pEr, int pulse)
 {
   if (pulse < 0 || pulse >= EVR_MAX_PULSES)
@@ -651,6 +925,12 @@ int EvrGetPulseWidth(volatile struct MrfErRegs *pEr, int pulse)
   return be32_to_cpu(pEr->Pulse[pulse].Width);
 }
 
+/**
+Show pulse generator settings.
+
+@param pEr Pointer to MrfErRegs structure
+@param pulses Number of pulse generators
+*/
 void EvrDumpPulses(volatile struct MrfErRegs *pEr, int pulses)
 {
   int i, control;
@@ -677,6 +957,17 @@ void EvrDumpPulses(volatile struct MrfErRegs *pEr, int pulses)
     }
 }
 
+/**
+Set up pulse generator properties.
+
+@param pEr Pointer to MrfErRegs structure
+@param pulse Number of pulse generator
+@param polarity 0 - positive pulse (active high), 1 - negative pulse (active low)
+@param map_reset_ena 0 - disable flip-flop reset, 1 - enable flip-flop reset
+@param map_set_ena 0 - disable flip-flop set, 1 - enable flip-flop set
+@param map_trigger_ena 0 - disable triggering, 1 - enable triggering
+@param enable 0 - disable pulse generator, 1 - enable pulse generator
+*/
 int EvrSetPulseProperties(volatile struct MrfErRegs *pEr, int pulse, int polarity,
 			  int map_reset_ena, int map_set_ena, int map_trigger_ena,
 			  int enable)
@@ -723,6 +1014,24 @@ int EvrSetPulseProperties(volatile struct MrfErRegs *pEr, int pulse, int polarit
   return 0;
 }
 
+/**
+Set up pulse generator hardware gates.
+
+Pulse generators 28 through 31 have flip-flops only without
+prescaler/delay/width counters. These flip-flop outputs can be used to
+gate (mask/enable) pulse generator triggers.
+
+As an example if we set up the mask field of pulse generator 0 to 0x01
+and the enable field of pulse generator 1 to 0x01 we get pulse
+generator 0 triggered only if the output of pulse generator 28 is
+low. When the output of pulse generator 28 is low, pulse generator 1
+gets triggered and pulse generator 0 not.
+
+@param pEr Pointer to MrfErRegs structure
+@param pulse Number of pulse generator
+@param mask Bit mask for pulse generator hardware disable
+@param enable Bit mask for pulse generator hardware enable
+*/
 int EvrSetPulseMask(volatile struct MrfErRegs *pEr, int pulse, int mask, int enable)
 {
   int result;
@@ -741,6 +1050,15 @@ int EvrSetPulseMask(volatile struct MrfErRegs *pEr, int pulse, int mask, int ena
   return 0;  
 }
 
+/**
+Set up prescaler to trigger pulse generator.
+
+Any of the prescalers can be set up to trigger any number of pulse generators.
+
+@param pEr Pointer to MrfErRegs structure
+@param prescaler Number of prescaler
+@param trigs Bit mask of pulse generator triggers
+*/
 int EvrSetPrescalerTrig(volatile struct MrfErRegs *pEr, int prescaler, int trigs)
 {
   int result;
@@ -752,6 +1070,15 @@ int EvrSetPrescalerTrig(volatile struct MrfErRegs *pEr, int prescaler, int trigs
   return be32_to_cpu(pEr->PrescalerTrig[prescaler]);  
 }
 
+/**
+Set up distributed bus signals to trigger pulse generator.
+
+Any of the eight distibuted bus signals can be set up to trigger any number of pulse generators.
+
+@param pEr Pointer to MrfErRegs structure
+@param dbus Number of distributed bus bit
+@param trigs Bit mask of pulse generator triggers
+*/
 int EvrSetDBusTrig(volatile struct MrfErRegs *pEr, int dbus, int trigs)
 {
   int result;
@@ -763,6 +1090,34 @@ int EvrSetDBusTrig(volatile struct MrfErRegs *pEr, int dbus, int trigs)
   return be32_to_cpu(pEr->DBusTrig[dbus]);  
 }
 
+/**
+Set up output mapping for Universal Output.
+
+Some form factors support dual outputs where two mappings are bitwise
+or'ed together. In this case the map field consists of two bytes. If
+only one output is to be mapped, set the upper byte to 0x3f.
+
+<table>
+<caption id="multi_row">Output mapping</caption>
+<tr><th>ID<th>Signal
+<tr><td>0x00<td>Pulse generator 0
+<tr><td>0x01<td>Pulse generator 1
+<tr><td>...<td>...
+<tr><td>0x20<td>Distributed bus bit 0
+<tr><td>0x21<td>Distributed bus bit 1
+<tr><td>...<td>...
+<tr><td>0x28<td>Prescaler 0
+<tr><td>0x29<td>Prescaler 1
+<tr><td>...<td>...
+<tr><td>61<td>High-Impedance (only on I/O pins)
+<tr><td>62<td>High 1
+<tr><td>63<td>Low 0
+</table>
+
+@param pEr Pointer to MrfErRegs structure
+@param output Number of Universal Output
+@param map Output map
+*/
 int EvrSetUnivOutMap(volatile struct MrfErRegs *pEr, int output, int map)
 {
   if (output < 0 || output >= EVR_MAX_UNIVOUT_MAP)
@@ -773,6 +1128,15 @@ int EvrSetUnivOutMap(volatile struct MrfErRegs *pEr, int output, int map)
   return be16_to_cpu(pEr->UnivOutMap[output]);
 }
 
+/**
+Retrieve output mapping for Universal Output.
+
+Please see EvrSetUnivOutMap() for details about the mapping.
+
+@param pEr Pointer to MrfErRegs structure
+@param output Number of Universal Output
+@return Output map for output
+*/
 int EvrGetUnivOutMap(volatile struct MrfErRegs *pEr, int output)
 {
   if (output < 0 || output >= EVR_MAX_UNIVOUT_MAP)
@@ -781,6 +1145,14 @@ int EvrGetUnivOutMap(volatile struct MrfErRegs *pEr, int output)
   return be16_to_cpu(pEr->UnivOutMap[output]);
 }
 
+/**
+Show output mapping for Universal Outputs.
+
+Please see EvrSetUnivOutMap() for details about the mapping IDs.
+
+@param pEr Pointer to MrfErRegs structure
+@param output Number of outputs
+*/
 void EvrDumpUnivOutMap(volatile struct MrfErRegs *pEr, int outputs)
 {
   int i;
@@ -789,6 +1161,15 @@ void EvrDumpUnivOutMap(volatile struct MrfErRegs *pEr, int outputs)
     DEBUG_PRINTF("UnivOut[%d] %02x\n", i, be16_to_cpu(pEr->UnivOutMap[i]));
 }
 
+/**
+Set up output mapping for Front panel outputs.
+
+Please see EvrSetUnivOutMap() for details about the mapping.
+
+@param pEr Pointer to MrfErRegs structure
+@param output Number of output
+@param map Output map
+*/
 int EvrSetFPOutMap(volatile struct MrfErRegs *pEr, int output, int map)
 {
   if (output < 0 || output >= EVR_MAX_FPOUT_MAP)
@@ -799,6 +1180,15 @@ int EvrSetFPOutMap(volatile struct MrfErRegs *pEr, int output, int map)
   return be16_to_cpu(pEr->FPOutMap[output]);
 }
 
+/**
+Retrieve output mapping for Front panel outputs.
+
+Please see EvrSetUnivOutMap() for details about the mapping.
+
+@param pEr Pointer to MrfErRegs structure
+@param output Number of Universal Output
+@return Output map for output
+*/
 int EvrGetFPOutMap(volatile struct MrfErRegs *pEr, int output)
 {
   if (output < 0 || output >= EVR_MAX_FPOUT_MAP)
@@ -807,6 +1197,14 @@ int EvrGetFPOutMap(volatile struct MrfErRegs *pEr, int output)
   return be16_to_cpu(pEr->FPOutMap[output]);
 }
 
+/**
+Show output mapping for Front panel outputs.
+
+Please see EvrSetUnivOutMap() for details about the mapping IDs.
+
+@param pEr Pointer to MrfErRegs structure
+@param output Number of outputs
+*/
 void EvrDumpFPOutMap(volatile struct MrfErRegs *pEr, int outputs)
 {
   int i;
@@ -815,6 +1213,15 @@ void EvrDumpFPOutMap(volatile struct MrfErRegs *pEr, int outputs)
     DEBUG_PRINTF("FPOut[%d] %02x\n", i, be16_to_cpu(pEr->FPOutMap[i]));
 }
 
+/**
+Set up output mapping for Transition board outputs.
+
+Please see EvrSetUnivOutMap() for details about the mapping.
+
+@param pEr Pointer to MrfErRegs structure
+@param output Number of output
+@param map Output map
+*/
 int EvrSetTBOutMap(volatile struct MrfErRegs *pEr, int output, int map)
 {
   if (output < 0 || output >= EVR_MAX_TBOUT_MAP)
@@ -825,6 +1232,15 @@ int EvrSetTBOutMap(volatile struct MrfErRegs *pEr, int output, int map)
   return be16_to_cpu(pEr->TBOutMap[output]);
 }
 
+/**
+Retrieve output mapping for Transition board outputs.
+
+Please see EvrSetUnivOutMap() for details about the mapping.
+
+@param pEr Pointer to MrfErRegs structure
+@param output Number of Universal Output
+@return Output map for output
+*/
 int EvrGetTBOutMap(volatile struct MrfErRegs *pEr, int output)
 {
   if (output < 0 || output >= EVR_MAX_TBOUT_MAP)
@@ -833,6 +1249,14 @@ int EvrGetTBOutMap(volatile struct MrfErRegs *pEr, int output)
   return be16_to_cpu(pEr->TBOutMap[output]);
 }
 
+/**
+Show output mapping for Transition board outputs.
+
+Please see EvrSetUnivOutMap() for details about the mapping IDs.
+
+@param pEr Pointer to MrfErRegs structure
+@param output Number of outputs
+*/
 void EvrDumpTBOutMap(volatile struct MrfErRegs *pEr, int outputs)
 {
   int i;
@@ -841,6 +1265,15 @@ void EvrDumpTBOutMap(volatile struct MrfErRegs *pEr, int outputs)
     DEBUG_PRINTF("TBOut[%d] %02x\n", i, be16_to_cpu(pEr->TBOutMap[i]));
 }
 
+/**
+Set up output mapping for Backplane outputs.
+
+Please see EvrSetUnivOutMap() for details about the mapping.
+
+@param pEr Pointer to MrfErRegs structure
+@param output Number of output
+@param map Output map
+*/
 int EvrSetBPOutMap(volatile struct MrfErRegs *pEr, int output, int map)
 {
   if (output < 0 || output >= EVR_MAX_BPOUT_MAP)
@@ -851,6 +1284,15 @@ int EvrSetBPOutMap(volatile struct MrfErRegs *pEr, int output, int map)
   return be16_to_cpu(pEr->BPOutMap[output]);
 }
 
+/**
+Retrieve output mapping for Backplane outputs.
+
+Please see EvrSetUnivOutMap() for details about the mapping.
+
+@param pEr Pointer to MrfErRegs structure
+@param output Number of Universal Output
+@return Output map for output
+*/
 int EvrGetBPOutMap(volatile struct MrfErRegs *pEr, int output)
 {
   if (output < 0 || output >= EVR_MAX_BPOUT_MAP)
@@ -859,6 +1301,14 @@ int EvrGetBPOutMap(volatile struct MrfErRegs *pEr, int output)
   return be16_to_cpu(pEr->BPOutMap[output]);
 }
 
+/**
+Show output mapping for Backplane outputs.
+
+Please see EvrSetUnivOutMap() for details about the mapping IDs.
+
+@param pEr Pointer to MrfErRegs structure
+@param output Number of outputs
+*/
 void EvrDumpBPOutMap(volatile struct MrfErRegs *pEr, int outputs)
 {
   int i;
@@ -868,6 +1318,13 @@ void EvrDumpBPOutMap(volatile struct MrfErRegs *pEr, int outputs)
 }
 
 #ifdef __unix__
+/**
+Assign user space interrupt handler for EVR interrupts.
+
+@param pEr Pointer to MrfErRegs structure
+@param fd File descriptor of EVR device
+@param handler Pointer to user space interrupt handler
+*/
 void EvrIrqAssignHandler(volatile struct MrfErRegs *pEr, int fd,
 			 void (*handler)(int))
 {
@@ -890,6 +1347,9 @@ void EvrIrqAssignHandler(volatile struct MrfErRegs *pEr, int fd,
   EvrIrqHandled(fd);
 }
 
+/**
+@private
+*/
 void EvrIrqUnassignHandler(int vector,
 			 void (*handler)(int))
 {
@@ -910,6 +1370,29 @@ void EvrIrqUnassignHandler(int vector,
 }
 #endif
 
+/**
+Enable interrupts for EVR.
+
+@param pEr Pointer to MrfErRegs structure
+@param mask Interrupt mask
+
+<table>
+<caption id="multi_row">Interrupt mask</caption>
+<tr><th>Bit<th>Function
+<tr><td>0<td>Receiver violation interrupt
+<tr><td>1<td>Event FIFO full interrupt
+<tr><td>2<td>Hearbeat interrupt
+<tr><td>3<td>Event interrupt
+<tr><td>4<td>Hardware interrupt
+<tr><td>5<td>Data buffer interrupt
+<tr><td>6<td>Link state change interrupt
+<tr><td>7<td>Segmented data buffer interrupt
+<tr><td>8<td>Sequence RAM start interrupt
+<tr><td>12<td>Sequence RAM stop interrupt
+<tr><td>16<td>Sequence RAM halfway through interrupt
+<tr><td>20<td>Sequence RAM roll over interrupt
+</table>
+*/
 int EvrIrqEnable(volatile struct MrfErRegs *pEr, int mask)
 {
   int control = be32_to_cpu(pEr->IrqEnable) & EVR_IRQ_PCICORE_ENABLE;
@@ -918,16 +1401,41 @@ int EvrIrqEnable(volatile struct MrfErRegs *pEr, int mask)
   return be32_to_cpu(pEr->IrqEnable);
 }
 
+/**
+Get interrupt enable state for EVR.
+
+@param pEr Pointer to MrfErRegs structure
+@return Interrupt enable mask
+
+Please see function EvrIrqEnable() for mask bit definitions.
+*/
 int EvrGetIrqEnable(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->IrqEnable);
 }
 
+/**
+Get interrupt flags for EVR.
+
+@param pEr Pointer to MrfErRegs structure
+@return Interrupt flags
+
+Please see function EvrIrqEnable() for flag bit definitions.
+*/
 int EvrGetIrqFlags(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->IrqFlag);
 }
 
+/**
+Clear interrupt flags for EVR.
+
+@param pEr Pointer to MrfErRegs structure
+@param mask Bit mask to clear interrupts
+@return Interrupt flags
+
+Please see function EvrIrqEnable() for interrupt bit definitions.
+*/
 int EvrClearIrqFlags(volatile struct MrfErRegs *pEr, int mask)
 {
   pEr->IrqFlag = be32_to_cpu(mask);
@@ -935,12 +1443,25 @@ int EvrClearIrqFlags(volatile struct MrfErRegs *pEr, int mask)
 }
 
 #ifdef __unix__
+/**
+Function to call when interrupt handler exits.
+
+@param fd File descriptor of EVR device opened.
+*/
 void EvrIrqHandled(int fd)
 {
   ioctl(fd, EV_IOCIRQEN);
 }
 #endif
 
+/**
+Set up map for hardware interrupt.
+
+@param pEr Pointer to MrfErRegs structure
+@param map Output map for hardware interrupt.
+
+Please see EvrSetUnivOutMap() for details about the mapping.
+*/
 int EvrSetPulseIrqMap(volatile struct MrfErRegs *pEr, int map)
 {
   pEr->PulseIrqMap = be32_to_cpu(map);
@@ -948,12 +1469,14 @@ int EvrSetPulseIrqMap(volatile struct MrfErRegs *pEr, int map)
   return be32_to_cpu(pEr->PulseIrqMap);
 }
 
+/** @private */
 void EvrClearDiagCounters(volatile struct MrfErRegs *pEr)
 {
   pEr->DiagReset = 0xffffffff;
   pEr->DiagReset = 0x0;
 }
 
+/** @private */
 int EvrEnableDiagCounters(volatile struct MrfErRegs *pEr, int enable)
 {
   if (enable)
@@ -964,28 +1487,39 @@ int EvrEnableDiagCounters(volatile struct MrfErRegs *pEr, int enable)
   return be32_to_cpu(pEr->DiagCE);
 }
 
+/** @private */
 u32 EvrGetDiagCounter(volatile struct MrfErRegs *pEr, int idx)
 {
   return be32_to_cpu(pEr->DiagCounter[idx]);
 }
 
+/** @private */
 int EvrSetGPIODir(volatile struct MrfErRegs *pEr, int dir)
 {
   pEr->GPIODir = be32_to_cpu(dir);
   return be32_to_cpu(pEr->GPIODir);
 }
 
+/** @private */
 int EvrSetGPIOOut(volatile struct MrfErRegs *pEr, int dout)
 {
   pEr->GPIOOut = be32_to_cpu(dout);
   return be32_to_cpu(pEr->GPIOOut);
 }
 
+/** @private */
 int EvrGetGPIOIn(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->GPIOIn);
 }
 
+/**
+Enable output on Universal I/O delay modules (-DLY)
+
+@param pEr Pointer to MrfErRegs structure
+@param dlymod Number od delay module
+@param enable 0 - disable, 1 - enable
+*/
 int EvrUnivDlyEnable(volatile struct MrfErRegs *pEr, int dlymod, int enable)
 {
   u32 gpio;
@@ -1026,6 +1560,14 @@ int EvrUnivDlyEnable(volatile struct MrfErRegs *pEr, int dlymod, int enable)
   return 0;
 }
 
+/**
+Set delay on Universal I/O delay modules (-DLY)
+
+@param pEr Pointer to MrfErRegs structure
+@param dlymod Number od delay module
+@param dly0 Delay of first output 0 - 1023
+@param dly1 Delay of seconds output 0 - 1023
+*/
 int EvrUnivDlySetDelay(volatile struct MrfErRegs *pEr, int dlymod, int dly0, int dly1)
 {
   u32 gpio;
@@ -1125,6 +1667,7 @@ int EvrUnivDlySetDelay(volatile struct MrfErRegs *pEr, int dlymod, int dly0, int
   return 0;
 }
 
+/** @private */
 void EvrDumpHex(volatile struct MrfErRegs *pEr)
 {
   u32 *p = (u32 *) pEr;
@@ -1139,6 +1682,14 @@ void EvrDumpHex(volatile struct MrfErRegs *pEr)
     }
 }
 
+/**
+Set up fractional synthesizer that generates reference clock for event clock
+
+@param pEr Pointer to MrfErRegs structure
+@param fracdiv Control word
+
+The control word can be generated from a reference frequency by using function freq_to_cw().
+*/
 int EvrSetFracDiv(volatile struct MrfErRegs *pEr, int fracdiv)
 {
   pEr->UsecDiv = be32_to_cpu((int) cw_to_freq(fracdiv));
@@ -1146,11 +1697,25 @@ int EvrSetFracDiv(volatile struct MrfErRegs *pEr, int fracdiv)
   return be32_to_cpu(pEr->FracDiv = be32_to_cpu(fracdiv));
 }
 
+/**
+Get fractional synthesizer control word
+
+@param pEr Pointer to MrfErRegs structure
+@return fracdiv Control word
+
+Use function cw_to_freq() to convert the control word to frequency.
+*/
 int EvrGetFracDiv(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->FracDiv);
 }
 
+/**
+Set databuffer mode.
+
+@param pEr Pointer to MrfErRegs structure
+@param enable 0 - disable, 1 - enable
+*/
 int EvrSetDBufMode(volatile struct MrfErRegs *pEr, int enable)
 {
   if (enable)
@@ -1161,6 +1726,12 @@ int EvrSetDBufMode(volatile struct MrfErRegs *pEr, int enable)
   return EvrGetDBufStatus(pEr);
 }
 
+/**
+Get databuffer mode status.
+
+@param pEr Pointer to MrfErRegs structure
+@return 0 - disabled, non-zero - enabled
+*/
 int EvrGetDBufStatus(volatile struct MrfErRegs *pEr)
 {
   volatile u32 *dbc = &(pEr->DataBufControl);
@@ -1168,6 +1739,16 @@ int EvrGetDBufStatus(volatile struct MrfErRegs *pEr)
   return be32_to_cpu(*dbc);
 }
 
+/**
+Arm/disarm data buffer.
+
+The data buffer has to be armed before reception is possible. Upon
+reception the data buffer is automatically disarmed and only the first
+buffer is received.
+
+@param pEr Pointer to MrfErRegs structure
+@param enable 0 - disarm, 1 - arm
+*/
 int EvrReceiveDBuf(volatile struct MrfErRegs *pEr, int enable)
 {
   if (enable)
@@ -1178,6 +1759,14 @@ int EvrReceiveDBuf(volatile struct MrfErRegs *pEr, int enable)
   return EvrGetDBufStatus(pEr);
 }
 
+/**
+Retrieve received data buffer.
+
+@param pEr Pointer to MrfErRegs structure
+@param dbuf Pointer to memory to copy data buffer to
+@param size Size of buffer pointed to by dbuf
+@return -1 on error, number of bytes copied on success.
+*/
 int EvrGetDBuf(volatile struct MrfErRegs *pEr, char *dbuf, int size)
 {
   int stat, rxsize;
@@ -1214,6 +1803,13 @@ int EvrGetDBuf(volatile struct MrfErRegs *pEr, char *dbuf, int size)
   return rxsize;
 }
 
+/**
+Get segmented data buffer segment receive status.
+
+@param pEr Pointer to MrfErRegs structure
+@param segment Number of starting segment
+@return -1 on error, 0 if segment not received, 1 if segment received
+*/
 int EvrGetSegRx(volatile struct MrfErRegs *pEr, int segment)
 {
   u32 *rx_flag;
@@ -1229,6 +1825,13 @@ int EvrGetSegRx(volatile struct MrfErRegs *pEr, int segment)
     return 0;
 }
 
+/**
+Get segmented data buffer segment overflow flag.
+
+@param pEr Pointer to MrfErRegs structure
+@param segment Number of starting segment
+@return -1 on error, 0 no overflow, 1 segment overwritten
+*/
 int EvrGetSegOv(volatile struct MrfErRegs *pEr, int segment)
 {
   u32 *ov_flag;
@@ -1244,6 +1847,13 @@ int EvrGetSegOv(volatile struct MrfErRegs *pEr, int segment)
     return 0;
 }
 
+/**
+Get segmented data buffer segment checksum error flag.
+
+@param pEr Pointer to MrfErRegs structure
+@param segment Number of starting segment
+@return -1 on error, 0 no error, 1 checksum error in segment
+*/
 int EvrGetSegCs(volatile struct MrfErRegs *pEr, int segment)
 {
   u32 *cs_flag;
@@ -1259,6 +1869,12 @@ int EvrGetSegCs(volatile struct MrfErRegs *pEr, int segment)
     return 0;
 }
 
+/**
+Clear segmented data buffer segment flags.
+
+@param pEr Pointer to MrfErRegs structure
+@param segment Number of starting segment to clear
+*/
 void EvrClearSegFlag(volatile struct MrfErRegs *pEr, int segment)
 {
   u32 *rx_flag;
@@ -1271,6 +1887,14 @@ void EvrClearSegFlag(volatile struct MrfErRegs *pEr, int segment)
   *rx_flag = be32_to_cpu((0x80000000 >> (segment % 32)));
 }
 
+/**
+Retrieve received segmented data buffer.
+
+@param pEr Pointer to MrfErRegs structure
+@param dbuf Pointer to memory to copy data buffer to
+@param segment number of segment to retrieve
+@return -1 on error, number of bytes copied on success.
+*/
 int EvrGetSegBuf(volatile struct MrfErRegs *pEr, char *dbuf, int segment)
 {
   int stat, rxsize;
@@ -1312,6 +1936,14 @@ int EvrGetSegBuf(volatile struct MrfErRegs *pEr, char *dbuf, int segment)
   return rxsize;
 }
 
+/**
+Set local timestamp divider prescaler.
+
+The timestamp event counter is incremented from the local counter or when the counter value is zero, either from the distributed bus or received timestamp event 0x7c. Please see function EvrSetTimestampDBus().
+
+@param pEr Pointer to MrfErRegs structure
+@param div Prescaler value.
+*/
 int EvrSetTimestampDivider(volatile struct MrfErRegs *pEr, int div)
 {
   pEr->EvCntPresc = be32_to_cpu(div);
@@ -1319,26 +1951,58 @@ int EvrSetTimestampDivider(volatile struct MrfErRegs *pEr, int div)
   return be32_to_cpu(pEr->EvCntPresc);
 }
 
+/**
+Get timestamp event counter value.
+
+@param pEr Pointer to MrfErRegs structure
+@return Timestamp counter value.
+*/
 int EvrGetTimestampCounter(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->TimestampEventCounter);
 }
 
+/**
+Get timestamp seconds counter value.
+
+@param pEr Pointer to MrfErRegs structure
+@return Timestamp secnods counter value.
+*/
 int EvrGetSecondsCounter(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->SecondsCounter);
 }
 
+/**
+Get timestamp latch value (latched from timestamp event counter).
+
+@param pEr Pointer to MrfErRegs structure
+@return Timestamp latch value.
+*/
 int EvrGetTimestampLatch(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->TimestampLatch);
 }
 
+/**
+Get timestamp seconds latch value (latched from timestamp seconds register).
+
+@param pEr Pointer to MrfErRegs structure
+@return Timestamp seconds latch value.
+*/
 int EvrGetSecondsLatch(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->SecondsLatch);
 }
 
+/**
+Enable/disable timestamp counter running from distributed bus bit 4.
+Please note that also the timestamp event counter has to be cleared to
+0. Please see function EvrSetTimestampDivider().
+
+@param pEr Pointer to MrfErRegs structure
+@param enable 0 - use timestamp event 0x7c, 1 - use distributed bus bit 4.
+*/
 int EvrSetTimestampDBus(volatile struct MrfErRegs *pEr, int enable)
 {
   int ctrl;
@@ -1353,6 +2017,13 @@ int EvrSetTimestampDBus(volatile struct MrfErRegs *pEr, int enable)
   return be32_to_cpu(pEr->Control);  
 }
 
+/**
+Set up prescaler.
+
+@param pEr Pointer to MrfErRegs structure
+@param presc Number of prescaler
+@param div Prescaler divider
+*/
 int EvrSetPrescaler(volatile struct MrfErRegs *pEr, int presc, int div)
 {
   if (presc >= 0 && presc < EVR_MAX_PRESCALERS)
@@ -1364,6 +2035,13 @@ int EvrSetPrescaler(volatile struct MrfErRegs *pEr, int presc, int div)
   return -1;
 }
 
+/**
+Get prescaler divider.
+
+@param pEr Pointer to MrfErRegs structure
+@param presc Number of prescaler
+@return Prescaler divider
+*/
 int EvrGetPrescaler(volatile struct MrfErRegs *pEr, int presc)
 {
   if (presc >= 0 && presc < EVR_MAX_PRESCALERS)
@@ -1373,6 +2051,13 @@ int EvrGetPrescaler(volatile struct MrfErRegs *pEr, int presc)
   return -1;
 }
 
+/**
+Set up prescaler polarity.
+
+@param pEr Pointer to MrfErRegs structure
+@param presc Number of prescaler
+@param polarity 0 - falling edge aligned on reset prescalers event, 1 - rising edge aligned on reset prescalers event
+*/
 int EvrSetPrescalerPolarity(volatile struct MrfErRegs *pEr, int polarity)
 {
   if (polarity)
@@ -1383,6 +2068,13 @@ int EvrSetPrescalerPolarity(volatile struct MrfErRegs *pEr, int polarity)
   return be32_to_cpu(pEr->Control & (1 << C_EVR_CTRL_PRESC_POLARITY));
 }
 
+/**
+Set up prescaler phase.
+
+@param pEr Pointer to MrfErRegs structure
+@param presc Number of prescaler
+@param phase Phase offset (negative delay)
+*/
 int EvrSetPrescalerPhase(volatile struct MrfErRegs *pEr, int presc, int phase)
 {
   if (presc >= 0 && presc < EVR_MAX_PRESCALERS)
@@ -1394,6 +2086,15 @@ int EvrSetPrescalerPhase(volatile struct MrfErRegs *pEr, int presc, int phase)
   return -1;
 }
 
+/**
+Set up external event.
+
+@param pEr Pointer to MrfErRegs structure
+@param ttlin 
+@param code
+@param edge_enable
+@param level_enable
+*/
 int EvrSetExtEvent(volatile struct MrfErRegs *pEr, int ttlin, int code, int edge_enable, int level_enable)
 {
   int fpctrl;

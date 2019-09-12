@@ -1,8 +1,8 @@
 SUBDIRS := api wrapper
 
-all clean:
+all clean doc:
 	for dir in $(SUBDIRS); do \
           $(MAKE) -C $$dir -f Makefile $@; \
         done
 
-.PHONY: all clean
+.PHONY: all clean doc

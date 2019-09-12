@@ -16,6 +16,7 @@ EvrDCEnable \
 EvrDumpBPOutMap \
 EvrDumpFIFO \
 EvrDumpFPOutMap \
+EvrDumpDC \
 EvrDumpLog \
 EvrDumpMapRam \
 EvrDumpPulses \
@@ -68,7 +69,7 @@ EvrUnivDlySetDelay \
 FctDumpStatus \
 FctGetViolation
 
-all: $(WRAPPERS)
+all: $(WRAPPERS) doc
 
 % : %.c
 
@@ -79,4 +80,8 @@ all: $(WRAPPERS)
 	$(CC) $(CFLAGS) -c $<
 
 clean:
-	rm -rf *.o *~ $(WRAPPERS)
+	rm -rf *.o *~ $(WRAPPERS) latex html
+
+doc: 
+	doxygen
+	$(MAKE) -C latex -f Makefile
