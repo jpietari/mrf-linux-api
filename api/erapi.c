@@ -2089,20 +2089,37 @@ int EvrSetPrescalerPhase(volatile struct MrfErRegs *pEr, int presc, int phase)
 /**
 Set up external event.
 
+External events are locally generated events that are inserted in the
+received event stream.
+
+<table>
+<caption id="ext_event_input">Input mapping</caption>
+<tr><th>Input number<th>Hardware input
+<tr><td>0<td>Front panel TTL input 0
+<tr><td>1<td>Front panel TTL input 1
+<tr><td>...<td>...
+<tr><td>4<td>Universal Input 0
+<tr><td>5<td>Universal Input 1
+<tr><td>...<td>...
+<tr><td>24<td>Backplane Input 0
+<tr><td>25<td>Backplane Input 1
+<tr><td>...<td>... 
+</table>
+
 @param pEr Pointer to MrfErRegs structure
-@param ttlin 
-@param code
-@param edge_enable
-@param level_enable
+@param input Number of input, see table \ref ext_event_input
+@param code Event code to generate
+@param edge_enable 0 - edge sensitivity disabled, 1 - edge sensitivity enabled
+@param level_enable 0 - level sensiticity disabled, 1 - level sensitivity enabled
 */
-int EvrSetExtEvent(volatile struct MrfErRegs *pEr, int ttlin, int code, int edge_enable, int level_enable)
+int EvrSetExtEvent(volatile struct MrfErRegs *pEr, int input, int code, int edge_enable, int level_enable)
 {
   int fpctrl;
 
-  if (ttlin < 0 || ttlin > EVR_MAX_EXTIN_MAP)
+  if (input < 0 || input > EVR_MAX_EXTIN_MAP)
     return -1;
 
-  fpctrl = be32_to_cpu(pEr->ExtinMap[ttlin]);
+  fpctrl = be32_to_cpu(pEr->ExtinMap[input]);
   if (code >= 0 && code <= EVR_MAX_EVENT_CODE)
     {
       fpctrl &= ~(EVR_MAX_EVENT_CODE << C_EVR_EXTIN_EXTEVENT_BASE);
@@ -2116,31 +2133,50 @@ int EvrSetExtEvent(volatile struct MrfErRegs *pEr, int ttlin, int code, int edge
   if (level_enable)
     fpctrl |= (1 << C_EVR_EXTIN_EXTLEV_ENABLE);
 
-  pEr->ExtinMap[ttlin] = be32_to_cpu(fpctrl);
-  if (pEr->ExtinMap[ttlin] == be32_to_cpu(fpctrl))
+  pEr->ExtinMap[input] = be32_to_cpu(fpctrl);
+  if (pEr->ExtinMap[input] == be32_to_cpu(fpctrl))
     return 0;
   return -1;
 }
 
-int EvrGetExtEventCode(volatile struct MrfErRegs *pEr, int ttlin)
+/**
+Get external event code for input.
+
+@param pEr Pointer to MrfErRegs structure
+@param input Number of input, see table \ref ext_event_input
+@return Event code assigned to input.
+*/
+int EvrGetExtEventCode(volatile struct MrfErRegs *pEr, int input)
 {
   int fpctrl;
 
-  if (ttlin < 0 || ttlin > EVR_MAX_EXTIN_MAP)
+  if (input < 0 || input > EVR_MAX_EXTIN_MAP)
     return -1;
 
-  fpctrl = be32_to_cpu(pEr->ExtinMap[ttlin]);
+  fpctrl = be32_to_cpu(pEr->ExtinMap[input]);
   return (fpctrl >> C_EVR_EXTIN_EXTEVENT_BASE) & EVR_MAX_EVENT_CODE;
 }
 
-int EvrSetBackEvent(volatile struct MrfErRegs *pEr, int ttlin, int code, int edge_enable, int level_enable)
+/**
+Set up backward event.
+
+Backward events are locally generated events that are sent out through
+the SFP TX port.
+
+@param pEr Pointer to MrfErRegs structure
+@param input Number of input, see table \ref ext_event_input
+@param code Event code to generate
+@param edge_enable 0 - edge sensitivity disabled, 1 - edge sensitivity enabled
+@param level_enable 0 - level sensiticity disabled, 1 - level sensitivity enabled
+*/
+int EvrSetBackEvent(volatile struct MrfErRegs *pEr, int input, int code, int edge_enable, int level_enable)
 {
   int fpctrl;
 
-  if (ttlin < 0 || ttlin > EVR_MAX_EXTIN_MAP)
+  if (input < 0 || input > EVR_MAX_EXTIN_MAP)
     return -1;
 
-  fpctrl = be32_to_cpu(pEr->ExtinMap[ttlin]);
+  fpctrl = be32_to_cpu(pEr->ExtinMap[input]);
   if (code >= 0 && code <= EVR_MAX_EVENT_CODE)
     {
       fpctrl &= ~(EVR_MAX_EVENT_CODE << C_EVR_EXTIN_BACKEVENT_BASE);
@@ -2154,48 +2190,69 @@ int EvrSetBackEvent(volatile struct MrfErRegs *pEr, int ttlin, int code, int edg
   if (level_enable)
     fpctrl |= (1 << C_EVR_EXTIN_BACKLEV_ENABLE);
 
-  pEr->ExtinMap[ttlin] = be32_to_cpu(fpctrl);
-  if (pEr->ExtinMap[ttlin] == be32_to_cpu(fpctrl))
+  pEr->ExtinMap[input] = be32_to_cpu(fpctrl);
+  if (pEr->ExtinMap[input] == be32_to_cpu(fpctrl))
     return 0;
   return -1;
 }
 
-int EvrSetExtEdgeSensitivity(volatile struct MrfErRegs *pEr, int ttlin, int edge)
+/**
+Set up external event edge sensitivity.
+
+@param pEr Pointer to MrfErRegs structure
+@param input Number of input, see table \ref ext_event_input
+@param edge 0 - trigger event on rising edge, 1 - trigger event on falling edge
+*/
+int EvrSetExtEdgeSensitivity(volatile struct MrfErRegs *pEr, int input, int edge)
 {
   int fpctrl;
 
-  if (ttlin < 0 || ttlin > EVR_MAX_EXTIN_MAP)
+  if (input < 0 || input > EVR_MAX_EXTIN_MAP)
     return -1;
 
-  fpctrl = be32_to_cpu(pEr->ExtinMap[ttlin]);
+  fpctrl = be32_to_cpu(pEr->ExtinMap[input]);
   fpctrl &= ~(1 << C_EVR_EXTIN_EXT_EDGE);
   if (edge)
     fpctrl |= (1 << C_EVR_EXTIN_EXT_EDGE);
 
-  pEr->ExtinMap[ttlin] = be32_to_cpu(fpctrl);
-  if (pEr->ExtinMap[ttlin] == be32_to_cpu(fpctrl))
+  pEr->ExtinMap[input] = be32_to_cpu(fpctrl);
+  if (pEr->ExtinMap[input] == be32_to_cpu(fpctrl))
     return 0;
   return -1;
 }
 
-int EvrSetExtLevelSensitivity(volatile struct MrfErRegs *pEr, int ttlin, int level)
+/**
+Set up external event level sensitivity.
+
+@param pEr Pointer to MrfErRegs structure
+@param input Number of input, see table \ref ext_event_input
+@param level 0 - send events when input high, 1 - send events when input low
+*/
+int EvrSetExtLevelSensitivity(volatile struct MrfErRegs *pEr, int input, int level)
 {
   int fpctrl;
 
-  if (ttlin < 0 || ttlin > EVR_MAX_EXTIN_MAP)
+  if (input < 0 || input > EVR_MAX_EXTIN_MAP)
     return -1;
 
-  fpctrl = be32_to_cpu(pEr->ExtinMap[ttlin]);
+  fpctrl = be32_to_cpu(pEr->ExtinMap[input]);
   fpctrl &= ~(1 << C_EVR_EXTIN_EXTLEV_ACT);
   if (level)
     fpctrl |= (1 << C_EVR_EXTIN_EXTLEV_ACT);
 
-  pEr->ExtinMap[ttlin] = be32_to_cpu(fpctrl);
-  if (pEr->ExtinMap[ttlin] == be32_to_cpu(fpctrl))
+  pEr->ExtinMap[input] = be32_to_cpu(fpctrl);
+  if (pEr->ExtinMap[input] == be32_to_cpu(fpctrl))
     return 0;
   return -1;
 }
 
+/**
+Get external input state.
+
+@param pEr Pointer to MrfErRegs structure
+@param input Number of input, see table \ref ext_event_input
+@return State of input, 0 - input low, 1 - input high
+*/
 int EvrGetExtInStatus(volatile struct MrfErRegs *pEr, int extin)
 {
   int fpctrl;
@@ -2211,30 +2268,38 @@ int EvrGetExtInStatus(volatile struct MrfErRegs *pEr, int extin)
     return 0;
 }
 
-int EvrGetUnivInStatus(volatile struct MrfErRegs *pEr, int univin);
-int EvrGetBPInStatus(volatile struct MrfErRegs *pEr, int bpin);
+/**
+Set up external input to backward distributed bus mapping.
 
-int EvrSetBackDBus(volatile struct MrfErRegs *pEr, int ttlin, int dbus)
+The backward distributed bus is sent out through the SFP TX port. Any
+external input can be mapped to any backward distributed bus bit.
+
+@param pEr Pointer to MrfErRegs structure
+@param input Number of input, see table \ref ext_event_input
+@param dbus Distributed bus mask to map input to
+*/
+int EvrSetBackDBus(volatile struct MrfErRegs *pEr, int input, int dbus)
 {
   int fpctrl;
 
-  if (ttlin < 0 || ttlin > EVR_MAX_EXTIN_MAP)
+  if (input < 0 || input > EVR_MAX_EXTIN_MAP)
     return -1;
 
   if (dbus < 0 || dbus > 255)
     return -1;
 
-  fpctrl = be32_to_cpu(pEr->ExtinMap[ttlin]);
+  fpctrl = be32_to_cpu(pEr->ExtinMap[input]);
   fpctrl &= ~(255 << C_EVR_EXTIN_BACKDBUS_BASE);
   fpctrl |= dbus << C_EVR_EXTIN_BACKDBUS_BASE;
 
-  pEr->ExtinMap[ttlin] = be32_to_cpu(fpctrl);
-  if (pEr->ExtinMap[ttlin] == be32_to_cpu(fpctrl))
+  pEr->ExtinMap[input] = be32_to_cpu(fpctrl);
+  if (pEr->ExtinMap[input] == be32_to_cpu(fpctrl))
     return 0;
   return -1;
 
 }
 
+/** @private */
 int EvrSetTxDBufMode(volatile struct MrfErRegs *pEr, int enable)
 {
   if (enable)
@@ -2245,11 +2310,23 @@ int EvrSetTxDBufMode(volatile struct MrfErRegs *pEr, int enable)
   return EvrGetTxDBufStatus(pEr);
 }
 
+/** @private */
 int EvrGetTxDBufStatus(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->TxDataBufControl);
 }
 
+/**
+Send data buffer through SFP TX port.
+
+@param pEr Pointer to MrfErRegs structure
+@param dbuf Pointer to data buffer to send
+@param size Number of bytes to send (4 to 2048)
+@return Returns -1 on error, number of bytes sent on success.
+
+The function does not wait for the transmission to be completed. If the
+previous transfer is still in progress the function returns -1.
+*/
 int EvrSendTxDBuf(volatile struct MrfErRegs *pEr, char *dbuf, int size)
 {
   int stat;
@@ -2286,11 +2363,29 @@ int EvrSendTxDBuf(volatile struct MrfErRegs *pEr, char *dbuf, int size)
   return size;
 }
 
+/**
+Get segmented data buffer transmitter control register.
+
+@param pEr Pointer to MrfErRegs structure
+@return Segmented data buffer transmitter control register.
+*/
 int EvrGetTxSegBufStatus(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->TxSegBufControl);
 }
 
+/**
+Send segmented data buffer through SFP TX port.
+
+@param pEr Pointer to MrfErRegs structure
+@param dbuf Pointer to data buffer to send
+@param segment Starting segment number
+@param size Number of bytes to send (4 to max. 2048 depending on segment number)
+@return Returns -1 on error, number of bytes sent on success.
+
+The function does not wait for the transmission to be completed. If the
+previous transfer is still in progress the function returns -1.
+*/
 int EvrSendTxSegBuf(volatile struct MrfErRegs *pEr, char *dbuf, int segment, int size)
 {
   int stat, dummy;
@@ -2336,7 +2431,23 @@ int EvrSendTxSegBuf(volatile struct MrfErRegs *pEr, char *dbuf, int segment, int
   return size;
 }
 
+/**
+Retrieve form factor of EVR device.
 
+@param pEr Pointer to MrfErRegs structure
+@return Form Factor
+<table>
+<caption id="form_factor">Form factor</caption>
+<tr><th>ID<th>Form Factor
+<tr><td>0<td>CompactPCI 3U
+<tr><td>1<td>PMC
+<tr><td>2<td>VME64x
+<tr><td>4<td>CompactPCI 6U
+<tr><td>6<td>PXIe 3U
+<tr><td>7<td>PCIe
+<tr><td>8<td>mTCA.4
+</table>
+*/
 int EvrGetFormFactor(volatile struct MrfErRegs *pEr)
 {
   int stat;
@@ -2345,6 +2456,7 @@ int EvrGetFormFactor(volatile struct MrfErRegs *pEr)
   return ((stat >> 24) & 0x0f);
 }
 
+/** @private */
 int EvrSetFineDelay(volatile struct MrfErRegs *pEr, int channel, int delay)
 {
   if (channel < 0 || channel >= EVR_MAX_CML_OUTPUTS)
@@ -2354,6 +2466,7 @@ int EvrSetFineDelay(volatile struct MrfErRegs *pEr, int channel, int delay)
   return be32_to_cpu(pEr->FineDelay[channel]);
 }
 
+/** @private */
 int EvrCMLEnable(volatile struct MrfErRegs *pEr, int channel, int state)
 {
   int ctrl;
@@ -2378,6 +2491,7 @@ int EvrCMLEnable(volatile struct MrfErRegs *pEr, int channel, int state)
   return be16_to_cpu(pEr->CML[channel].Control);
 }
 
+/** @private */
 int EvrSetCMLMode(volatile struct MrfErRegs *pEr, int channel, int mode)
 {
   int ctrl;
@@ -2394,6 +2508,12 @@ int EvrSetCMLMode(volatile struct MrfErRegs *pEr, int channel, int mode)
   return be16_to_cpu(pEr->CML[channel].Control);
 }
 
+/**
+Select event clock source.
+
+@param pEr Pointer to MrfErRegs structure
+@param enable 0 - Event clock locked to EVG, 1 - Event clock locally generated (stand-alone mode)
+*/
 int EvrSetIntClkMode(volatile struct MrfErRegs *pEr, int enable)
 {
   int ctrl;
@@ -2408,17 +2528,35 @@ int EvrSetIntClkMode(volatile struct MrfErRegs *pEr, int enable)
   return (be32_to_cpu(pEr->ClockControl) & (1 << C_EVR_CLKCTRL_INT_CLK_MODE));
 }
 
+/**
+Set target delay. In delay compensation mode the target delay is the total system delay, in non-DC mode the target delay is the depth of the delay compensation FIFO.
+
+@param pEr Pointer to MrfErRegs structure
+@param delay Target delay value is a 32 bit fixed point number with the point in the middle of two 16 bit words. The value represent the delay in event clock cycles.
+*/
 int EvrSetTargetDelay(volatile struct MrfErRegs *pEr, int delay)
 {
   pEr->dc_target = be32_to_cpu(delay);
   return EvrGetTargetDelay(pEr);
 }
 
+/**
+Get target delay. In delay compensation mode the target delay is the total system delay, in non-DC mode the target delay is the depth of the delay compensation FIFO.
+
+@param pEr Pointer to MrfErRegs structure
+@return Target delay value is a 32 bit fixed point number with the point in the middle of two 16 bit words. The value represent the delay in event clock cycles.
+*/
 int EvrGetTargetDelay(volatile struct MrfErRegs *pEr)
 {
   return (be32_to_cpu(pEr->dc_target));
 }
 
+/**
+Enable local software events.
+
+@param pEr Pointer to MrfErRegs structure
+@param state 0 - disable, 1 - enable software events
+*/
 int EvrSWEventEnable(volatile struct MrfErRegs *pEr, int state)
 {
   unsigned int mask = ~((1 << (C_EVR_SWEVENT_CODE_HIGH + 1)) -
@@ -2433,11 +2571,24 @@ int EvrSWEventEnable(volatile struct MrfErRegs *pEr, int state)
   return EvrGetSWEventEnable(pEr);
 }
 
+/**
+Get local software event state.
+
+@param pEr Pointer to MrfErRegs structure
+@return 0 - software events disabled, non-zero - software events enabled
+*/
 int EvrGetSWEventEnable(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->SWEvent & be32_to_cpu(1 << C_EVR_SWEVENT_ENABLE));
 }
 
+/**
+Send local software event. This function inserts a software event in
+an empty event slot in the received event stream.
+
+@param pEr Pointer to MrfErRegs structure
+@param code Event code to insert into received event stream
+*/
 int EvrSendSWEvent(volatile struct MrfErRegs *pEr, int code)
 {
   unsigned int mask = ~((1 << (C_EVR_SWEVENT_CODE_HIGH + 1)) -
@@ -2453,6 +2604,15 @@ int EvrSendSWEvent(volatile struct MrfErRegs *pEr, int code)
   return be32_to_cpu(pEr->SWEvent);
 }
 
+/**
+Set sequence RAM event. This function writes an event into the sequence RAM.
+
+@param pEr Pointer to MrfErRegs structure
+@param ram RAM number, 0 for EVR
+@param pos Sequence RAM position (0 to 2047)
+@param timestamp 32 bit timestamp of event
+@param code Event code
+*/
 int EvrSetSeqRamEvent(volatile struct MrfErRegs *pEr, int ram, int pos, unsigned int timestamp, int code)
 {
   if (ram < 0 || ram >= EVR_SEQRAMS)
@@ -2470,6 +2630,14 @@ int EvrSetSeqRamEvent(volatile struct MrfErRegs *pEr, int ram, int pos, unsigned
   return 0;
 }
 
+/**
+Get sequence RAM event timestamp.
+
+@param pEr Pointer to MrfErRegs structure
+@param ram RAM number, 0 for EVR
+@param pos Sequence RAM position (0 to 2047)
+@return 32 bit timestamp of event at RAM position pos
+*/
 unsigned int EvrGetSeqRamTimestamp(volatile struct MrfErRegs *pEr, int ram, int pos)
 {
   if (ram < 0 || ram >= EVR_SEQRAMS)
@@ -2481,6 +2649,14 @@ unsigned int EvrGetSeqRamTimestamp(volatile struct MrfErRegs *pEr, int ram, int 
   return be32_to_cpu(pEr->SeqRam[ram][pos].Timestamp);
 }
 
+/**
+Get sequence RAM event code.
+
+@param pEr Pointer to MrfErRegs structure
+@param ram RAM number, 0 for EVR
+@param pos Sequence RAM position (0 to 2047)
+@return Event code at RAM position pos
+*/
 int EvrGetSeqRamEvent(volatile struct MrfErRegs *pEr, int ram, int pos)
 {
   if (ram < 0 || ram >= EVR_SEQRAMS)
@@ -2492,6 +2668,12 @@ int EvrGetSeqRamEvent(volatile struct MrfErRegs *pEr, int ram, int pos)
   return be32_to_cpu(pEr->SeqRam[ram][pos].EventCode);
 }
 
+/**
+Show sequence RAM contents.
+
+@param pEr Pointer to MrfErRegs structure
+@param ram RAM number, 0 for EVR
+*/
 void EvrSeqRamDump(volatile struct MrfErRegs *pEr, int ram)
 {
   int pos;
