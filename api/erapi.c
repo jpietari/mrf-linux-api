@@ -2689,6 +2689,35 @@ void EvrSeqRamDump(volatile struct MrfErRegs *pEr, int ram)
 		   be32_to_cpu(pEr->SeqRam[ram][pos].EventCode));
 }
 
+/**
+Control sequence RAM.
+
+@param pEr Pointer to MrfErRegs structure
+@param ram RAM number, 0 for EVR
+@param enable 0 - disable sequence RAM, 1 - enable sequence RAM
+@param single 1 - select single sequence mode
+@param recycle 1 - select recycle sequence mode
+@param reset 1 - reset sequence RAM
+@param trigsel See table \ref trigsel
+
+<table>
+<caption id="trigsel">Sequence RAM trigger selection</caption>
+<tr><th>ID<th>Trigger
+<tr><td>0x00<td>Pulse generator 0
+<tr><td>0x01<td>Pulse generator 1
+<tr><td>...<td>...
+<tr><td>0x20<td>Distributed bus bit 0
+<tr><td>0x21<td>Distributed bus bit 1
+<tr><td>...<td>...
+<tr><td>0x28<td>Prescaler 0
+<tr><td>0x29<td>Prescaler 1
+<tr><td>...<td>...
+<tr><td>0x30-0x3C<td>Reserved
+<tr><td>0x3D<td>Software trigger
+<tr><td>0x3E<td>Continuous trigger
+<tr><td>0x3F<td>Trigger disabled
+</table>
+*/
 int EvrSeqRamControl(volatile struct MrfErRegs *pEr, int ram, int enable, int single, int recycle, int reset, int trigsel)
 {
   int control;
@@ -2727,16 +2756,28 @@ int EvrSeqRamControl(volatile struct MrfErRegs *pEr, int ram, int enable, int si
   return 0;
 }
 					  
-int EvrSeqRamSWTrig(volatile struct MrfErRegs *pEr, int trig)
+/**
+Software trigger sequence RAM.
+
+@param pEr Pointer to MrfErRegs structure
+@param ram RAM number, 0 for EVR
+*/
+int EvrSeqRamSWTrig(volatile struct MrfErRegs *pEr, int ram)
 {
-  if (trig < 0 || trig > 1)
+  if (ram < 0 || ram > 1)
     return -1;
 
-  pEr->SeqRamControl[trig] |= be32_to_cpu(1 << C_EVR_SQRC_SWTRIGGER);
+  pEr->SeqRamControl[ram] |= be32_to_cpu(1 << C_EVR_SQRC_SWTRIGGER);
   
   return 0;
 }
 
+/**
+Show sequence RAM status.
+
+@param pEr Pointer to MrfErRegs structure
+@param ram RAM number, 0 for EVR
+*/
 void EvrSeqRamStatus(volatile struct MrfErRegs *pEr, int ram)
 {
   int control;
@@ -2758,16 +2799,39 @@ void EvrSeqRamStatus(volatile struct MrfErRegs *pEr, int ram)
   DEBUG_PRINTF(" Trigsel %02x\n", (control >> C_EVR_SQRC_TRIGSEL_LOW) & C_EVR_SEQTRIG_MAX);
 }
 
+/**
+Get EVR Topology ID.
+
+@param pEr Pointer to MrfErRegs structure
+@return Topology ID
+*/
 int EvrGetTopologyID(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->TopologyID);
 }
 
+/**
+Get EVR Delay Compensation status.
+
+@param pEr Pointer to MrfErRegs structure
+@return Delay Compensation Status
+*/
 int EvrGetDCStatus(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->dc_status);
 }
 
+/**
+Get Delay Compensation delay value. In delay compensation mode the EVR
+is trying to adjust the internal delay to get the delay compensation
+value as close as possible to the target delay value. In non-DC mode
+the internal FIFO depth is adjusted to match the target delay value.
+
+@param pEr Pointer to MrfErRegs structure @return In delay
+compensation mode returns the total delay value (internal delay + path
+delay value). In non-DC mode returns the measured value of the
+internal delay compensation FIFO.
+*/
 int EvrGetDCDelay(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->dc_int_value) + be32_to_cpu(pEr->dc_value);

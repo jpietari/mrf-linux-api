@@ -510,7 +510,7 @@ unsigned int EvrGetSeqRamTimestamp(volatile struct MrfErRegs *pEr, int ram, int 
 int EvrGetSeqRamEvent(volatile struct MrfErRegs *pEr, int ram, int pos);
 void EvrSeqRamDump(volatile struct MrfErRegs *pEr, int ram);
 int EvrSeqRamControl(volatile struct MrfErRegs *pEr, int ram, int enable, int single, int recycle, int reset, int trigsel);
-int EvrSeqRamSWTrig(volatile struct MrfErRegs *pEr, int trig);
+int EvrSeqRamSWTrig(volatile struct MrfErRegs *pEr, int ram);
 void EvrSeqRamStatus(volatile struct MrfErRegs *pEr, int ram);
 int EvrGetTopologyID(volatile struct MrfErRegs *pEr);
 int EvrGetDCStatus(volatile struct MrfErRegs *pEr);

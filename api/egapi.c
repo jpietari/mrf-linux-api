@@ -1,10 +1,9 @@
-/*
-  egapi.c -- Functions for Micro-Research Event Generator
-             Application Programming Interface
-
-  Author: Jukka Pietarinen (MRF)
-  Date:   05.12.2006
-
+/**
+@file egapi.c
+@brief Functions for Micro-Research Event Generator
+       Application Programming Interface.
+@author Jukka Pietarinen (MRF)
+@date 12/5/2006
 */
 
 #ifdef __unix__
@@ -51,6 +50,12 @@
 #define DEBUG_PRINTF printf
 
 #ifdef __linux__
+/**
+Opens EVG device and mmaps the register map into user space.
+@param pEg Pointer to pointer of memory mapped MrfEgRegs structure.
+@param device_name Name of device e.g. /dev/ega3.
+@return Returns file descriptor of opened file, -1 on error.
+*/
 int EvgOpen(struct MrfEgRegs **pEg, char *device_name)
 {
   int fd;
@@ -88,6 +93,11 @@ int EvgOpen(struct MrfEgRegs **pEg, char *device_name)
 #endif
 
 #ifdef __linux__
+/**
+Close EVG device opened with EvrOpen.
+@param fd File descriptor of EVG device returned by EvgOpen.
+@return Returns 0 on successful completion.
+*/
 int EvgClose(int fd)
 {
   int result;
@@ -102,11 +112,22 @@ int EvgClose(int fd)
 }
 #endif
 
+/**
+Retrieve EVG firmware version.
+@param pEg Pointer to MrfEgRegs structure
+@return Returns firmware version
+*/
 u32 EvgFWVersion(volatile struct MrfEgRegs *pEg)
 {
   return be32_to_cpu(pEg->FPGAVersion);
 }
 
+/**
+Enable/disable EVG.
+@param pEg Pointer to MrfEgRegs structure
+@param state 0 - disable, 1 - enable
+@return Returns state read back from EVG.
+*/
 int EvgEnable(volatile struct MrfEgRegs *pEg, int state)
 {
   if (state)
@@ -117,11 +138,22 @@ int EvgEnable(volatile struct MrfEgRegs *pEg, int state)
   return EvgGetEnable(pEg);
 }
 
+/**
+Get EVG enable state.
+@param pEg Pointer to MrfEgRegs structure
+@return Returns EVG state, 0 - disabled, non-zero - enabled.
+*/
 int EvgGetEnable(volatile struct MrfEgRegs *pEg)
 {
   return be32_to_cpu(pEg->Control & be32_to_cpu(1 << C_EVG_CTRL_MASTER_ENABLE));
 }
 
+/**
+Enable/disable EVG as system master.
+@param pEg Pointer to MrfEgRegs structure
+@param state 0 - EVG is not timing system master, 1 - EVG is timing system master
+@return Returns state read back from EVG.
+*/
 int EvgSystemMasterEnable(volatile struct MrfEgRegs *pEg, int state)
 {
   if (state)
@@ -132,11 +164,22 @@ int EvgSystemMasterEnable(volatile struct MrfEgRegs *pEg, int state)
   return EvgGetSystemMasterEnable(pEg);
 }
 
+/**
+Get EVG as system master state.
+@param pEg Pointer to MrfEgRegs structure
+@return 0 - EVG is not timing system master, non-zero - EVG is timing system master
+*/
 int EvgGetSystemMasterEnable(volatile struct MrfEgRegs *pEg)
 {
   return be32_to_cpu(pEg->Control & be32_to_cpu(1 << C_EVG_CTRL_DCMASTER_ENABLE));
 }
 
+/**
+Enable/disable EVG delay compensation beacon generator.
+@param pEg Pointer to MrfEgRegs structure
+@param state 0 - disable beacon generator, 1 - enable beacon generator
+@return Returns state read back from EVG.
+*/
 int EvgBeaconEnable(volatile struct MrfEgRegs *pEg, int state)
 {
   if (state)
@@ -147,11 +190,22 @@ int EvgBeaconEnable(volatile struct MrfEgRegs *pEg, int state)
   return EvgGetBeaconEnable(pEg);
 }
 
+/**
+Get EVG delay compensation beacon generator state.
+@param pEg Pointer to MrfEgRegs structure
+@return 0 - beacon generator disabled, non-zero - beacon generator enabled
+*/
 int EvgGetBeaconEnable(volatile struct MrfEgRegs *pEg)
 {
   return be32_to_cpu(pEg->Control & be32_to_cpu(1 << C_EVG_CTRL_BEACON_ENABLE));
 }
 
+/**
+Enable/disable EVG upstream SFP receiver port.
+@param pEg Pointer to MrfEgRegs structure
+@param state 0 - disable upstream SFP receiver port, 1 - enable upstream SFP receiver port
+@return Returns state read back from EVG.
+*/
 int EvgRxEnable(volatile struct MrfEgRegs *pEg, int state)
 {
   if (!state)
@@ -164,6 +218,11 @@ int EvgRxEnable(volatile struct MrfEgRegs *pEg, int state)
   return EvgRxGetEnable(pEg);
 }
 
+/**
+Get EVG upstream SFP receiver port state.
+@param pEg Pointer to MrfEgRegs structure
+@return 0 - upstream SFP receiver port disabled, 1 - upstream SFP receiver port enabled
+*/
 int EvgRxGetEnable(volatile struct MrfEgRegs *pEg)
 {
   return be32_to_cpu(~(pEg->Control) &
@@ -171,6 +230,12 @@ int EvgRxGetEnable(volatile struct MrfEgRegs *pEg)
 				 (1 << C_EVG_CTRL_RX_PWRDOWN)));
 }
 
+/**
+Get/clear EVG upstream link violation flag. The upstream link violation flag is set when an event link receive error is detected and the upstream port is enabled.
+@param pEg Pointer to MrfEgRegs structure
+@param clear 0 - just read, do not try to clear, 1 - clear violation flag
+@return Returns EVG upstream link violation flag state, 0 - no violation, non-zero - violation detected.
+*/
 int EvgGetViolation(volatile struct MrfEgRegs *pEg, int clear)
 {
   int result;
@@ -182,6 +247,12 @@ int EvgGetViolation(volatile struct MrfEgRegs *pEg, int clear)
   return result;
 }
 
+/**
+Enable/disable EVG software events.
+@param pEg Pointer to MrfEgRegs structure
+@param state 0 - disable sofwtare events, 1 - enable software events
+@return Returns state read back from EVG.
+*/
 int EvgSWEventEnable(volatile struct MrfEgRegs *pEg, int state)
 {
   unsigned int mask = ~((1 << (C_EVG_SWEVENT_CODE_HIGH + 1)) -
@@ -196,11 +267,21 @@ int EvgSWEventEnable(volatile struct MrfEgRegs *pEg, int state)
   return EvgGetSWEventEnable(pEg);
 }
 
+/**
+Get EVG software event state.
+@param pEg Pointer to MrfEgRegs structure
+@return 0 - sofwtare events disabled , non-zero - software events enabled
+*/
 int EvgGetSWEventEnable(volatile struct MrfEgRegs *pEg)
 {
   return be32_to_cpu(pEg->SWEvent & be32_to_cpu(1 << C_EVG_SWEVENT_ENABLE));
 }
 
+/**
+Send EVG software event.
+@param pEg Pointer to MrfEgRegs structure
+@param code Event code to send
+*/
 int EvgSendSWEvent(volatile struct MrfEgRegs *pEg, int code)
 {
   unsigned int mask = ~((1 << (C_EVG_SWEVENT_CODE_HIGH + 1)) -
@@ -216,6 +297,12 @@ int EvgSendSWEvent(volatile struct MrfEgRegs *pEg, int code)
   return be32_to_cpu(pEg->SWEvent);
 }
 
+/**
+Enable/disable EVG event analyzer.
+@param pEg Pointer to MrfEgRegs structure
+@param state 0 - disable event analyzer, 1 - enable event analyzer
+@return Returns state read back from EVG.
+*/
 int EvgEvanEnable(volatile struct MrfEgRegs *pEg, int state)
 {
   if (state)
@@ -226,11 +313,20 @@ int EvgEvanEnable(volatile struct MrfEgRegs *pEg, int state)
   return EvgEvanGetEnable(pEg);
 }
 
+/**
+Get EVG event analyzer state.
+@param pEg Pointer to MrfEgRegs structure
+@return 0 - event analyzer disabled, 1 - event analyzer enabled
+*/
 int EvgEvanGetEnable(volatile struct MrfEgRegs *pEg)
 {
   return be32_to_cpu(pEg->EvanControl & be32_to_cpu(1 << C_EVG_EVANCTRL_ENABLE)); 
 }
 
+/**
+Clear EVG event analyzer buffer.
+@param pEg Pointer to MrfEgRegs structure
+*/
 void EvgEvanReset(volatile struct MrfEgRegs *pEg)
 {
   struct EvanStruct evan;
@@ -240,11 +336,21 @@ void EvgEvanReset(volatile struct MrfEgRegs *pEg)
   EvgEvanGetEvent(pEg, &evan);
 }
 
+/**
+Reset EVG event analyzer time counter.
+@param pEg Pointer to MrfEgRegs structure
+*/
 void EvgEvanResetCount(volatile struct MrfEgRegs *pEg)
 {
   pEg->EvanControl |= be32_to_cpu(1 << C_EVG_EVANCTRL_COUNTRES);
 }
 
+/**
+Get EVG event analyzer event.
+@param pEg Pointer to MrfEgRegs structure
+@param evan Pointer to EvanStruct structure to copy event to
+@return -1 on error (no event available), 0 on success
+*/
 int EvgEvanGetEvent(volatile struct MrfEgRegs *pEg, struct EvanStruct *evan)
 {
   if (pEg->EvanControl & be32_to_cpu(1 << C_EVG_EVANCTRL_NOTEMPTY))
@@ -259,6 +365,10 @@ int EvgEvanGetEvent(volatile struct MrfEgRegs *pEg, struct EvanStruct *evan)
   return -1;
 }
 
+/**
+Dump event analyzer memory.
+@param pEg Pointer to MrfEgRegs structure
+*/
 void EvgEvanDump(volatile struct MrfEgRegs *pEg)
 {
   struct EvanStruct evan;
@@ -271,6 +381,12 @@ void EvgEvanDump(volatile struct MrfEgRegs *pEg)
     }
 }
 
+/**
+Set EVG multiplexed counter prescaler value.
+@param pEg Pointer to MrfEgRegs structure
+@param mxc Multiplexed counter number 0 - 7
+@param presc Prescaler value
+*/
 int EvgSetMXCPrescaler(volatile struct MrfEgRegs *pEg, int mxc, unsigned int presc)
 {
   if (mxc < 0 || mxc >= EVG_MAX_MXCS)
@@ -281,6 +397,12 @@ int EvgSetMXCPrescaler(volatile struct MrfEgRegs *pEg, int mxc, unsigned int pre
   return 0;
 }
 
+/**
+Get EVG multiplexed counter prescaler value.
+@param pEg Pointer to MrfEgRegs structure
+@param mxc Multiplexed counter number 0 - 7
+@return Prescaler value
+*/
 unsigned int EvgGetMXCPrescaler(volatile struct MrfEgRegs *pEg, int mxc)
 {
   if (mxc < 0 || mxc >= EVG_MAX_MXCS)
@@ -289,6 +411,12 @@ unsigned int EvgGetMXCPrescaler(volatile struct MrfEgRegs *pEg, int mxc)
   return (unsigned int) be32_to_cpu(pEg->MXC[mxc].Prescaler);
 }
 
+/**
+Set EVG multiplexed counter to trigger event mapping
+@param pEg Pointer to MrfEgRegs structure
+@param mxc Multiplexed counter number 0 - 7
+@param map Trigger event number to trigger from multiplexed counter
+*/
 int EvgSetMxcTrigMap(volatile struct MrfEgRegs *pEg, int mxc, int map)
 {
   if (mxc < 0 || mxc >= EVG_MAX_MXCS)
@@ -305,11 +433,19 @@ int EvgSetMxcTrigMap(volatile struct MrfEgRegs *pEg, int mxc, int map)
   return be32_to_cpu(pEg->MXC[mxc].Control) & 0x7fffffff;
 }
 
+/**
+Synchronize EVG multiplexed counters.
+@param pEg Pointer to MrfEgRegs structure
+*/
 void EvgSyncMxc(volatile struct MrfEgRegs *pEg)
 {
   pEg->Control |= be32_to_cpu(1 << C_EVG_CTRL_MXC_RESET);
 }
 
+/**
+Show EVG multiplexed counter settings.
+@param pEg Pointer to MrfEgRegs structure
+*/
 void EvgMXCDump(volatile struct MrfEgRegs *pEg)
 {
   int mxc;
@@ -327,6 +463,16 @@ void EvgMXCDump(volatile struct MrfEgRegs *pEg)
     }
 }
 
+/**
+Set EVG distributed bus bit mapping
+@param pEg Pointer to MrfEgRegs structure
+@param dbus Distributed bus bit number
+@param map Distributed bus bit mapping \n 
+           0 - no mapping, distributed bus bit low \n 
+           1 - from external input \n 
+	   2 - from multiplexed counter \n 
+           3 - forward from upstream EVG
+*/
 int EvgSetDBusMap(volatile struct MrfEgRegs *pEg, int dbus, int map)
 {
   int mask;
@@ -344,6 +490,10 @@ int EvgSetDBusMap(volatile struct MrfEgRegs *pEg, int dbus, int map)
   return 0;
 }
 
+/**
+Show EVG distributed bus settings.
+@param pEg Pointer to MrfEgRegs structure
+*/
 void EvgDBusDump(volatile struct MrfEgRegs *pEg)
 {
   int dbus;
@@ -373,16 +523,46 @@ void EvgDBusDump(volatile struct MrfEgRegs *pEg)
     }
 }
 
+/**
+Set EVG distributed bus timestamping events enable
+@param pEg Pointer to MrfEgRegs structure
+@param enable Enable mask, see table \ref dbusevents for bit mapping
+
+<table>
+<caption id="dbusevents">Distributed bus timestamping events mask</caption>
+<tr><th>Bit<th>Event
+<tr><td>7<td>enable for distributed bus input 7 to 0x71 seconds '1' event
+<tr><td>6<td>enable for distributed bus input 6 to 0x70 seconds '0' event
+<tr><td>5<td>enable for distributed bus input 5 to 0x7D timestamp reset event
+</table>
+*/
 int EvgSetDBusEvent(volatile struct MrfEgRegs *pEg, int enable)
 {
   pEg->DBusEvent = be32_to_cpu(enable);
 }
 
+/**
+Get EVG distributed bus timestamping events enable
+@param pEg Pointer to MrfEgRegs structure
+@return Enable mask, see table \ref dbusevents for bit mapping
+*/
 int EvgGetDBusEvent(volatile struct MrfEgRegs *pEg)
 {
   return be32_to_cpu(pEg->DBusEvent);
 }
 
+/**
+Set EVG AC Input
+@param pEg Pointer to MrfEgRegs structure
+@param bypass 0 - Mains logic enabled, 1 - Mains logic bypassed
+@param sync Synchronization select \n 
+            0 - Synchronize to event clock \n 
+            1 - Synchronize to multiplexed counter 7 \n 
+            3 - Synchronize to TTL input 1 \n 
+            5 - Synchronize to TTL input 2
+@param div AC input divider 0 to 255 (value of 0 results in divide by 256)
+@param delay delay in 0.1 ms steps, 0 to 25.5 ms
+*/
 int EvgSetACInput(volatile struct MrfEgRegs *pEg, int bypass, int sync, int div, int delay)
 {
   unsigned int result;
@@ -394,10 +574,20 @@ int EvgSetACInput(volatile struct MrfEgRegs *pEg, int bypass, int sync, int div,
   if (bypass == 1)
     result |= (1 << C_EVG_ACCTRL_BYPASS);
 
-  if (sync == 0)
+  if ((sync & 1) == 0)
     result &= ~(1 << C_EVG_ACCTRL_ACSYNC);
-  if (sync == 1)
+  if ((sync & 1) == 1)
     result |= (1 << C_EVG_ACCTRL_ACSYNC);
+
+  if ((sync & 2) == 0)
+    result &= ~(1 << C_EVG_ACCTRL_ACSYNC_1);
+  if ((sync & 2) != 0)
+    result |= (1 << C_EVG_ACCTRL_ACSYNC_1);
+
+  if ((sync & 4) == 0)
+    result &= ~(1 << C_EVG_ACCTRL_ACSYNC_2);
+  if ((sync & 4) != 0)
+    result |= (1 << C_EVG_ACCTRL_ACSYNC_2);
 
   if (div > 0 && div < (2 << (C_EVG_ACCTRL_DIV_HIGH - C_EVG_ACCTRL_DIV_LOW)))
     {
@@ -416,6 +606,11 @@ int EvgSetACInput(volatile struct MrfEgRegs *pEg, int bypass, int sync, int div,
   return 0;
 }
 
+/**
+Set EVG AC Input
+@param pEg Pointer to MrfEgRegs structure
+@param map Event trigger number to map AC trigger to, -1 to disable
+*/
 int EvgSetACMap(volatile struct MrfEgRegs *pEg, int map)
 {
   if (map > EVG_MAX_TRIGGERS)
@@ -429,6 +624,10 @@ int EvgSetACMap(volatile struct MrfEgRegs *pEg, int map)
   return 0;
 }
 
+/**
+Show EVG AC Input settings
+@param pEg Pointer to MrfEgRegs structure
+*/
 void EvgACDump(volatile struct MrfEgRegs *pEg)
 {
   unsigned int result;
@@ -449,6 +648,51 @@ void EvgACDump(volatile struct MrfEgRegs *pEg)
   DEBUG_PRINTF("\n");
 }
 
+/**
+Set EVG RF Input
+@param pEg Pointer to MrfEgRegs structure
+@param RFsel Event clock source select \n 
+             0 - Internal reference (fractional synthesizer) \n 
+	     1 - External RF input \n 
+	     2 - PXIe 100 MHz clock (PXIe-EVG-300 only) \n 
+             4 - Recovered upstream EVG clock, Fan-Out mode \n 
+             5 - External RF input for downstream ports, internal reference for upstream port, Fan-Out mode, event rate down conversion \n 
+	     6 - PXIe 10 MHz clock through 10 x clock multiplier (PXIe-EVG-300 only) \n 
+	     7 - Recovered upstream EVG clock /2 decimate mode, Fan-Out mode
+@param div Divider \n
+           0 - direct RF frequency \n 
+	   1 - RF/2 \n 
+	   2 - RF/3 \n 
+	   3 - RF/4 \n 
+	   4 - RF/5 \n 
+	   5 - RF/6 \n 
+	   6 - RF/7 \n 
+	   7 - RF/8 \n 
+	   8 - RF/9 \n 
+	   9 - RF/10 \n 
+	   10 - RF/11 \n 
+	   11 - RF/12 \n 
+	   12 - OFF \n 
+	   13 - RF/14 \n 
+	   14 - RF/15 \n 
+	   15 - RF/16 \n 
+	   16 - RF/17 \n 
+	   17 - RF/18 \n 
+	   18 - RF/19 \n 
+	   19 - RF/20 \n 
+	   20 - RF/21 \n 
+	   21 - RF/22 \n 
+	   22 - RF/23 \n 
+	   23 - RF/24 \n 
+	   24 - RF/25 \n 
+	   25 - RF/26 \n 
+	   26 - RF/27 \n 
+	   27 - RF/28 \n 
+	   28 - RF/29 \n 
+	   29 - RF/30 \n 
+	   30 - RF/31 \n 
+	   31 - RF/32
+*/
 int EvgSetRFInput(volatile struct MrfEgRegs *pEg, int RFsel, int div)
 {
   int rfdiv;
@@ -470,6 +714,14 @@ int EvgSetRFInput(volatile struct MrfEgRegs *pEg, int RFsel, int div)
   return 0;
 }
 
+/**
+Set up fractional synthesizer that generates reference clock for event clock
+
+@param pEg Pointer to MrfEgRegs structure
+@param fracdiv Control word
+
+The control word can be generated from a reference frequency by using function freq_to_cw().
+*/
 int EvgSetFracDiv(volatile struct MrfEgRegs *pEg, int fracdiv)
 {
   pEg->UsecDiv = be32_to_cpu((int) cw_to_freq(fracdiv));
@@ -477,11 +729,28 @@ int EvgSetFracDiv(volatile struct MrfEgRegs *pEg, int fracdiv)
   return be32_to_cpu(pEg->FracDiv = be32_to_cpu(fracdiv));
 }
 
+/**
+Get fractional synthesizer control word
+
+@param pEg Pointer to MrfEgRegs structure
+@return fracdiv Control word
+
+Use function cw_to_freq() to convert the control word to frequency.
+*/
 int EvgGetFracDiv(volatile struct MrfEgRegs *pEg)
 {
   return be32_to_cpu(pEg->FracDiv);
 }
 
+/**
+Set sequence RAM event. This function writes an event into the sequence RAM.
+
+@param pEg Pointer to MrfEgRegs structure
+@param ram RAM number
+@param pos Sequence RAM position (0 to 2047)
+@param timestamp 32 bit timestamp of event
+@param code Event code
+*/
 int EvgSetSeqRamEvent(volatile struct MrfEgRegs *pEg, int ram, int pos, unsigned int timestamp, int code)
 {
   if (ram < 0 || ram >= EVG_SEQRAMS)
@@ -499,6 +768,14 @@ int EvgSetSeqRamEvent(volatile struct MrfEgRegs *pEg, int ram, int pos, unsigned
   return 0;
 }
 
+/**
+Get sequence RAM event timestamp.
+
+@param pEr Pointer to MrfEgRegs structure
+@param ram RAM number
+@param pos Sequence RAM position (0 to 2047)
+@return 32 bit timestamp of event at RAM position pos
+*/
 unsigned int EvgGetSeqRamTimestamp(volatile struct MrfEgRegs *pEg, int ram, int pos)
 {
   if (ram < 0 || ram >= EVG_SEQRAMS)
@@ -510,6 +787,14 @@ unsigned int EvgGetSeqRamTimestamp(volatile struct MrfEgRegs *pEg, int ram, int 
   return be32_to_cpu(pEg->SeqRam[ram][pos].Timestamp);
 }
 
+/**
+Get sequence RAM event code.
+
+@param pEg Pointer to MrfEgRegs structure
+@param ram RAM number
+@param pos Sequence RAM position (0 to 2047)
+@return Event code at RAM position pos
+*/
 int EvgGetSeqRamEvent(volatile struct MrfEgRegs *pEg, int ram, int pos)
 {
   if (ram < 0 || ram >= EVG_SEQRAMS)
@@ -521,6 +806,12 @@ int EvgGetSeqRamEvent(volatile struct MrfEgRegs *pEg, int ram, int pos)
   return be32_to_cpu(pEg->SeqRam[ram][pos].EventCode);
 }
 
+/**
+Show sequence RAM contents.
+
+@param pEg Pointer to MrfEgRegs structure
+@param ram RAM number
+*/
 void EvgSeqRamDump(volatile struct MrfEgRegs *pEg, int ram)
 {
   int pos;
@@ -536,6 +827,33 @@ void EvgSeqRamDump(volatile struct MrfEgRegs *pEg, int ram)
 		   be32_to_cpu(pEg->SeqRam[ram][pos].EventCode));
 }
 
+/**
+Control sequence RAM.
+
+@param pEg Pointer to MrfEgRegs structure
+@param ram RAM number
+@param enable 0 - disable sequence RAM, 1 - enable sequence RAM
+@param single 1 - select single sequence mode
+@param recycle 1 - select recycle sequence mode
+@param reset 1 - reset sequence RAM
+@param trigsel See table \ref evgtrigsel
+
+<table>
+<caption id="evgtrigsel">Sequence RAM trigger selection</caption>
+<tr><th>ID<th>Trigger
+<tr><td>0x00<td>Multiplexed counter 0
+<tr><td>0x01<td>Multiplexed counter 1
+<tr><td>...<td>...
+<tr><td>0x07<td>Multiplexed counter 7
+<tr><td>0x10<td>AC synchronization logic
+<tr><td>0x11<td>Sequence RAM 0 software trigger
+<tr><td>0x12<td>Sequence RAM 1 software trigger
+<tr><td>0x13<td>Continuous trigger
+<tr><td>0x18<td>Sequence RAM 0 external trigger
+<tr><td>0x19<td>Sequence RAM 1 external trigger
+<tr><td>0x1F<td>Trigger disabled
+</table>
+*/
 int EvgSeqRamControl(volatile struct MrfEgRegs *pEg, int ram, int enable, int single, int recycle, int reset, int trigsel)
 {
   int control;
@@ -574,6 +892,12 @@ int EvgSeqRamControl(volatile struct MrfEgRegs *pEg, int ram, int enable, int si
   return 0;
 }
 					  
+/**
+Software trigger sequence RAM.
+
+@param pEg Pointer to MrfEgRegs structure
+@param ram RAM number, 0 for EVR
+*/
 int EvgSeqRamSWTrig(volatile struct MrfEgRegs *pEg, int trig)
 {
   if (trig < 0 || trig > 1)

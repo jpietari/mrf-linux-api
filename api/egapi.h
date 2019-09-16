@@ -165,6 +165,8 @@ struct MrfEgRegs {
 #define C_EVG_SWEVENT_CODE_HIGH  7
 #define C_EVG_SWEVENT_CODE_LOW   0
 /* -- AC Input Control Register bit mappings */
+#define C_EVG_ACCTRL_ACSYNC_2    19
+#define C_EVG_ACCTRL_ACSYNC_1    18
 #define C_EVG_ACCTRL_BYPASS      17
 #define C_EVG_ACCTRL_ACSYNC      16
 #define C_EVG_ACCTRL_DIV_HIGH    15
