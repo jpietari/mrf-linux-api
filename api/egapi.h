@@ -1,10 +1,9 @@
 /*
-  egapi.h -- Definitions for Micro-Research Event Generator
-             Application Programming Interface
-
-  Author: Jukka Pietarinen (MRF)
-  Date:   05.12.2006
-
+@file egapi.h
+@brief Definitions for Micro-Research Event Generator
+       Application Programming Interface.
+@author Jukka Pietarinen (MRF)
+@date 12/5/2006
 */
 
 /*
@@ -333,7 +332,7 @@ unsigned int EvgGetSeqRamTimestamp(volatile struct MrfEgRegs *pEg, int ram, int 
 int EvgGetSeqRamEvent(volatile struct MrfEgRegs *pEg, int ram, int pos);
 void EvgSeqRamDump(volatile struct MrfEgRegs *pEg, int ram);
 int EvgSeqRamControl(volatile struct MrfEgRegs *pEg, int ram, int enable, int single, int recycle, int reset, int trigsel);
-int EvgSeqRamSWTrig(volatile struct MrfEgRegs *pEg, int trig);
+int EvgSeqRamSWTrig(volatile struct MrfEgRegs *pEg, int ram);
 void EvgSeqRamStatus(volatile struct MrfEgRegs *pEg, int ram);
 int EvgSetUnivinMap(volatile struct MrfEgRegs *pEg, int univ, int trig, int dbus, int irq, int seqtrig);
 int EvgGetUnivinMapTrigger(volatile struct MrfEgRegs *pEg, int univ);

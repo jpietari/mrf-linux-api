@@ -1,11 +1,10 @@
-/*
-  sfpdiag.c -- SFP Transceiver Diagnostics Tools
-               for Micro-Research Event Generator/Receiver
-               Application Programming Interface
-
-  Author: Jukka Pietarinen (MRF)
-  Date:   10.5.2012
-
+/**
+@file sfpdiag.c
+@brief SFP Transceiver Diagnostics Tools
+       for Micro-Research Event Generator/Receiver
+       Application Programming Interface
+@author Jukka Pietarinen (MRF)
+@date 5/10/2012
 */
 
 #ifdef __linux__
@@ -49,6 +48,11 @@
 #endif
 #endif
 
+/**
+Show SFP Transceiver serial number.
+
+@param pSFP Pointer to SFPDiag structure.
+*/
 void SFPSN(struct SFPDiag *pSFP)
 {
   int i;
@@ -59,6 +63,11 @@ void SFPSN(struct SFPDiag *pSFP)
       printf("%c", pSFP->sn[i]);
 }
 
+/**
+Show SFP Transceiver details.
+
+@param pSFP Pointer to SFPDiag structure.
+*/
 void SFPDump(struct SFPDiag *pSFP)
 {
   int i;

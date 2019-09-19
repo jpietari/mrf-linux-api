@@ -898,16 +898,22 @@ Software trigger sequence RAM.
 @param pEg Pointer to MrfEgRegs structure
 @param ram RAM number, 0 for EVR
 */
-int EvgSeqRamSWTrig(volatile struct MrfEgRegs *pEg, int trig)
+int EvgSeqRamSWTrig(volatile struct MrfEgRegs *pEg, int ram)
 {
-  if (trig < 0 || trig > 1)
+  if (ram < 0 || ram > 1)
     return -1;
 
-  pEg->SeqRamControl[trig] |= be32_to_cpu(1 << C_EVG_SQRC_SWTRIGGER);
+  pEg->SeqRamControl[ram] |= be32_to_cpu(1 << C_EVG_SQRC_SWTRIGGER);
   
   return 0;
 }
 
+/**
+Show sequence RAM status.
+
+@param pEg Pointer to MrfEgRegs structure
+@param ram RAM number
+*/
 void EvgSeqRamStatus(volatile struct MrfEgRegs *pEg, int ram)
 {
   int control;
@@ -929,6 +935,16 @@ void EvgSeqRamStatus(volatile struct MrfEgRegs *pEg, int ram)
   DEBUG_PRINTF(" Trigsel %02x\n", (control >> C_EVG_SQRC_TRIGSEL_LOW) & C_EVG_SEQTRIG_MAX);
 }
 
+/**
+Set up Universal I/O Input Mappings.
+
+@param pEg Pointer to MrfEgRegs structure
+@param univ Number of Universal I/O input
+@param trig Number of Event trigger to trigger, -1 for no trigger
+@param dbus Number of Distributed bus bit to map input to, -1 for no mapping
+@param irq External interrupt mapping, 0 = no interrupt, 1 = mapped to interrupt
+@param seqtrig Number of sequence RAM trigger, -1 for no trigger 
+*/
 int EvgSetUnivinMap(volatile struct MrfEgRegs *pEg, int univ, int trig, int dbus, int irq, int seqtrig)
 {
   int map = 0;
@@ -962,6 +978,13 @@ int EvgSetUnivinMap(volatile struct MrfEgRegs *pEg, int univ, int trig, int dbus
   return 0;
 }
 
+/**
+Get Universal I/O Input to Event Trigger Mappings.
+
+@param pEg Pointer to MrfEgRegs structure
+@param univ Number of Universal I/O input
+@return Number of Event trigger to trigger, -1 for no trigger
+*/
 int EvgGetUnivinMapTrigger(volatile struct MrfEgRegs *pEg, int univ)
 {
   int mask, i;
@@ -979,6 +1002,13 @@ int EvgGetUnivinMapTrigger(volatile struct MrfEgRegs *pEg, int univ)
   return i;
 }
 
+/**
+Get Universal I/O Input to Distributed Bus Bit Mappings.
+
+@param pEg Pointer to MrfEgRegs structure
+@param univ Number of Universal I/O input
+@return Number of Distributed bus bit input is mapped to, -1 for no trigger
+*/
 int EvgGetUnivinMapDBus(volatile struct MrfEgRegs *pEg, int univ)
 {
   int mask, i;
@@ -996,6 +1026,13 @@ int EvgGetUnivinMapDBus(volatile struct MrfEgRegs *pEg, int univ)
   return i;
 }
 
+/**
+Get Universal I/O Input External Interrupt Mapping.
+
+@param pEg Pointer to MrfEgRegs structure
+@param univ Number of Universal I/O input
+@return 0 = Interrupt not mapped, 1 = interrupt mapped.
+*/
 int EvgGetUnivinMapIrq(volatile struct MrfEgRegs *pEg, int univ)
 {
   int mask;
@@ -1008,6 +1045,13 @@ int EvgGetUnivinMapIrq(volatile struct MrfEgRegs *pEg, int univ)
   return mask;
 }
 
+/**
+Get Universal I/O Input Sequence RAM Trigger Mapping.
+
+@param pEg Pointer to MrfEgRegs structure
+@param univ Number of Universal I/O input
+@return Number of sequencer trigger, -1 no trigger.
+*/
 int EvgGetUnivinMapSeqtrig(volatile struct MrfEgRegs *pEg, int univ)
 {
   int mask, i;
@@ -1025,6 +1069,11 @@ int EvgGetUnivinMapSeqtrig(volatile struct MrfEgRegs *pEg, int univ)
   return i;
 }
 
+/**
+Show Universal I/O Input Mappings.
+
+@param pEg Pointer to MrfEgRegs structure
+*/
 void EvgUnivinDump(volatile struct MrfEgRegs *pEg)
 {
   int univ;
@@ -1043,6 +1092,16 @@ void EvgUnivinDump(volatile struct MrfEgRegs *pEg)
     }
 }
 
+/**
+Set up Front panel Input Mappings.
+
+@param pEg Pointer to MrfEgRegs structure
+@param univ Number of Front panel input
+@param trig Number of Event trigger to trigger, -1 for no trigger
+@param dbus Number of Distributed bus bit to map input to, -1 for no mapping
+@param irq External interrupt mapping, 0 = no interrupt, 1 = mapped to interrupt
+@param seqtrig Number of sequence RAM trigger, -1 for no trigger 
+*/
 int EvgSetFPinMap(volatile struct MrfEgRegs *pEg, int univ, int trig, int dbus, int irq, int seqtrig)
 {
   int map = 0;
@@ -1076,6 +1135,13 @@ int EvgSetFPinMap(volatile struct MrfEgRegs *pEg, int univ, int trig, int dbus, 
   return 0;
 }
 
+/**
+Get Front panel Input to Event Trigger Mappings.
+
+@param pEg Pointer to MrfEgRegs structure
+@param univ Number of Front panel input
+@return Number of Event trigger to trigger, -1 for no trigger
+*/
 int EvgGetFPinMapTrigger(volatile struct MrfEgRegs *pEg, int fp)
 {
   int mask, i;
@@ -1093,6 +1159,13 @@ int EvgGetFPinMapTrigger(volatile struct MrfEgRegs *pEg, int fp)
   return i;
 }
 
+/**
+Get Front panel Input to Distributed Bus Bit Mappings.
+
+@param pEg Pointer to MrfEgRegs structure
+@param univ Number of Front panel input
+@return Number of Distributed bus bit input is mapped to, -1 for no trigger
+*/
 int EvgGetFPinMapDBus(volatile struct MrfEgRegs *pEg, int fp)
 {
   int mask, i;
@@ -1110,6 +1183,13 @@ int EvgGetFPinMapDBus(volatile struct MrfEgRegs *pEg, int fp)
   return i;
 }
 
+/**
+Get Front panel Input External Interrupt Mapping.
+
+@param pEg Pointer to MrfEgRegs structure
+@param univ Number of Front panel input
+@return 0 = Interrupt not mapped, 1 = interrupt mapped.
+*/
 int EvgGetFPinMapIrq(volatile struct MrfEgRegs *pEg, int fp)
 {
   int mask;
@@ -1122,6 +1202,13 @@ int EvgGetFPinMapIrq(volatile struct MrfEgRegs *pEg, int fp)
   return mask;
 }
 
+/**
+Get Front panel Input Sequence RAM Trigger Mapping.
+
+@param pEg Pointer to MrfEgRegs structure
+@param univ Number of Front panel input
+@return Number of sequencer trigger, -1 no trigger.
+*/
 int EvgGetFPinMapSeqtrig(volatile struct MrfEgRegs *pEg, int fp)
 {
   int mask, i;
@@ -1139,6 +1226,11 @@ int EvgGetFPinMapSeqtrig(volatile struct MrfEgRegs *pEg, int fp)
   return i;
 }
 
+/**
+Show Front panel Input Mappings.
+
+@param pEg Pointer to MrfEgRegs structure
+*/
 void EvgFPinDump(volatile struct MrfEgRegs *pEg)
 {
   int fp;
@@ -1157,6 +1249,16 @@ void EvgFPinDump(volatile struct MrfEgRegs *pEg)
     }
 }
 
+/**
+Set up Transition board Input Mappings.
+
+@param pEg Pointer to MrfEgRegs structure
+@param univ Number of Transition board input
+@param trig Number of Event trigger to trigger, -1 for no trigger
+@param dbus Number of Distributed bus bit to map input to, -1 for no mapping
+@param irq External interrupt mapping, 0 = no interrupt, 1 = mapped to interrupt
+@param seqtrig Number of sequence RAM trigger, -1 for no trigger 
+*/
 int EvgSetTBinMap(volatile struct MrfEgRegs *pEg, int tb, int trig, int dbus, int irq, int seqtrig)
 {
   int map = 0;
@@ -1190,6 +1292,13 @@ int EvgSetTBinMap(volatile struct MrfEgRegs *pEg, int tb, int trig, int dbus, in
   return 0;
 }
 
+/**
+Get Transition board Input to Event Trigger Mappings.
+
+@param pEg Pointer to MrfEgRegs structure
+@param univ Number of Transition board input
+@return Number of Event trigger to trigger, -1 for no trigger
+*/
 int EvgGetTBinMapTrigger(volatile struct MrfEgRegs *pEg, int tb)
 {
   int mask, i;
@@ -1207,6 +1316,13 @@ int EvgGetTBinMapTrigger(volatile struct MrfEgRegs *pEg, int tb)
   return i;
 }
 
+/**
+Get Transition board Input to Distributed Bus Bit Mappings.
+
+@param pEg Pointer to MrfEgRegs structure
+@param univ Number of Transition board input
+@return Number of Distributed bus bit input is mapped to, -1 for no trigger
+*/
 int EvgGetTBinMapDBus(volatile struct MrfEgRegs *pEg, int tb)
 {
   int mask, i;
@@ -1224,6 +1340,13 @@ int EvgGetTBinMapDBus(volatile struct MrfEgRegs *pEg, int tb)
   return i;
 }
 
+/**
+Get Transition board Input External Interrupt Mapping.
+
+@param pEg Pointer to MrfEgRegs structure
+@param univ Number of Transition board input
+@return 0 = Interrupt not mapped, 1 = interrupt mapped.
+*/
 int EvgGetTBinMapIrq(volatile struct MrfEgRegs *pEg, int tb)
 {
   int mask;
@@ -1236,6 +1359,13 @@ int EvgGetTBinMapIrq(volatile struct MrfEgRegs *pEg, int tb)
   return mask;
 }
 
+/**
+Get Transition board Input Sequence RAM Trigger Mapping.
+
+@param pEg Pointer to MrfEgRegs structure
+@param univ Number of Transition board input
+@return Number of sequencer trigger, -1 no trigger.
+*/
 int EvgGetTBinMapSeqtrig(volatile struct MrfEgRegs *pEg, int tb)
 {
   int mask, i;
@@ -1253,6 +1383,11 @@ int EvgGetTBinMapSeqtrig(volatile struct MrfEgRegs *pEg, int tb)
   return i;
 }
 
+/**
+Show Transition board Input Mappings.
+
+@param pEg Pointer to MrfEgRegs structure
+*/
 void EvgTBinDump(volatile struct MrfEgRegs *pEg)
 {
   int tb;
@@ -1271,6 +1406,14 @@ void EvgTBinDump(volatile struct MrfEgRegs *pEg)
     }
 }
 
+/**
+Set up Event Trigger.
+
+@param pEg Pointer to MrfEgRegs structure
+@param trigger Number of Event Trigger
+@param code Event Code
+@param enable 0 = Event trigger disabled, 1 = event trigger enabled
+*/
 int EvgSetTriggerEvent(volatile struct MrfEgRegs *pEg, int trigger, int code, int enable)
 {
   int result;
@@ -1296,18 +1439,37 @@ int EvgSetTriggerEvent(volatile struct MrfEgRegs *pEg, int trigger, int code, in
   return 0;
 }
 
+/**
+Get Event Trigger event code.
+
+@param pEg Pointer to MrfEgRegs structure
+@param trigger Number of Event Trigger
+@return Event Code
+*/
 int EvgGetTriggerEventCode(volatile struct MrfEgRegs *pEg, int trigger)
 {
   return (be32_to_cpu(pEg->EventTrigger[trigger])
 	  >> C_EVG_EVENTTRIG_CODE_LOW) & EVG_MAX_EVENT_CODE;
 }
 
+/**
+Get Event Trigger status.
+
+@param pEg Pointer to MrfEgRegs structure
+@param trigger Number of Event Trigger
+@return 0 = Event trigger disabled, 1 = event trigger enabled.
+*/
 int EvgGetTriggerEventEnable(volatile struct MrfEgRegs *pEg, int trigger)
 {
   return (be32_to_cpu(pEg->EventTrigger[trigger]) &
 	  (1 << C_EVG_EVENTTRIG_ENABLE) ? 1 : 0);
 }
 
+/**
+Show Event Triggers.
+
+@param pEg Pointer to MrfEgRegs structure
+*/
 void EvgTriggerEventDump(volatile struct MrfEgRegs *pEg)
 {
   int trigger, result;
@@ -1323,6 +1485,34 @@ void EvgTriggerEventDump(volatile struct MrfEgRegs *pEg)
     }
 }
 
+/**
+Set up output mapping for Universal Output.
+
+<table>
+<caption id="evg_output_mapping">Output mapping</caption>
+<tr><th>ID (dec)<th>ID (hex)<th>Signal
+<tr><td>0<td>0x00<td>Reserved
+<tr><td>...<td>...<td>...
+<tr><td>31<td>0x1F<td>Reserved
+<tr><td>32<td>0x20<td>Distributed bus bit 0
+<tr><td>33<td>0x21<td>Distributed bus bit 1
+<tr><td>...<td>...<td>...
+<tr><td>39<td>0x27<td>Distributed bus bit 7
+<tr><td>40<td>0x28<td>Multiplexed Counter 0
+<tr><td>41<td>0x29<td>Multiplexed Counter 1
+<tr><td>...<td>...<td>...
+<tr><td>47<td>0x2F<td>Multiplexed Counter 7
+<tr><td>48<td>0x30<td>AC trigger logic output
+<tr><td>49<td>0x31<td>Reserved
+<tr><td>...<td>...<td>...
+<tr><td>61<td>0x3D<td>Reserved
+<tr><td>62<td>62<td>High 1
+<tr><td>63<td>63<td>Low 0
+</table>
+@param pEg Pointer to MrfEgRegs structure
+@param output Number of Universal Output
+@param map Output map
+*/
 int EvgSetUnivOutMap(volatile struct MrfEgRegs *pEg, int output, int map)
 {
   pEg->UnivOutMap[output] = be16_to_cpu(map);
@@ -1330,11 +1520,29 @@ int EvgSetUnivOutMap(volatile struct MrfEgRegs *pEg, int output, int map)
   return be16_to_cpu(pEg->UnivOutMap[output]);
 }
 
+/**
+Retrieve output mapping for Universal Output.
+
+Please see \ref evg_output_mapping for details about the mapping.
+
+@param pEg Pointer to MrfEgRegs structure
+@param output Number of Universal Output
+@return Output map for output
+*/
 int EvgGetUnivOutMap(volatile struct MrfEgRegs *pEg, int output)
 {
   return be16_to_cpu(pEg->UnivOutMap[output]);
 }
 
+/**
+Set up output mapping for Front panel Output.
+
+Please see \ref evg_output_mapping for details about the mapping.
+
+@param pEg Pointer to MrfEgRegs structure
+@param output Number of Front panel Output
+@param map Output map
+*/
 int EvgSetFPOutMap(volatile struct MrfEgRegs *pEg, int output, int map)
 {
   pEg->FPOutMap[output] = be16_to_cpu(map);
@@ -1342,11 +1550,29 @@ int EvgSetFPOutMap(volatile struct MrfEgRegs *pEg, int output, int map)
   return be16_to_cpu(pEg->FPOutMap[output]);
 }
 
+/**
+Retrieve output mapping for Front panel Output.
+
+Please see \ref evg_output_mapping for details about the mapping.
+
+@param pEg Pointer to MrfEgRegs structure
+@param output Number of Front panel Output
+@return Output map for output
+*/
 int EvgGetFPOutMap(volatile struct MrfEgRegs *pEg, int output)
 {
   return be16_to_cpu(pEg->FPOutMap[output]);
 }
 
+/**
+Set up output mapping for Transition board Output.
+
+Please see \ref evg_output_mapping for details about the mapping.
+
+@param pEg Pointer to MrfEgRegs structure
+@param output Number of Transition board Output
+@param map Output map
+*/
 int EvgSetTBOutMap(volatile struct MrfEgRegs *pEg, int output, int map)
 {
   pEg->TBOutMap[output] = be16_to_cpu(map);
@@ -1354,11 +1580,28 @@ int EvgSetTBOutMap(volatile struct MrfEgRegs *pEg, int output, int map)
   return be16_to_cpu(pEg->TBOutMap[output]);
 }
 
+/**
+Retrieve output mapping for Transition board Output.
+
+Please see \ref evg_output_mapping for details about the mapping.
+
+@param pEg Pointer to MrfEgRegs structure
+@param output Number of Transition board Output
+@return Output map for output
+*/
 int EvgGetTBOutMap(volatile struct MrfEgRegs *pEg, int output)
 {
   return be16_to_cpu(pEg->TBOutMap[output]);
 }
 
+/**
+Set Data Buffer mode.
+
+For EVM's the data buffer mode is always enabled and cannot be disabled.
+
+@param pEg Pointer to MrfEgRegs structure
+@param enable 0 = disable, 1 = enable
+*/
 int EvgSetDBufMode(volatile struct MrfEgRegs *pEg, int enable)
 {
   if (enable)
@@ -1369,16 +1612,41 @@ int EvgSetDBufMode(volatile struct MrfEgRegs *pEg, int enable)
   return EvgGetDBufStatus(pEg);
 }
 
+/**
+Get Data Buffer mode.
+
+For EVM's the data buffer mode is always enabled and cannot be disabled.
+
+@param pEg Pointer to MrfEgRegs structure
+@return 0 = data buffer mode disabled, 1 = data buffer mode enabled
+*/
 int EvgGetDBufStatus(volatile struct MrfEgRegs *pEg)
 {
   return be32_to_cpu(pEg->DataBufControl);
 }
 
+/**
+Get segmented data buffer transmitter control register.
+
+@param pEg Pointer to MrfEgRegs structure
+@return Segmented data buffer transmitter control register.
+*/
 int EvgGetSegBufStatus(volatile struct MrfEgRegs *pEg)
 {
   return be32_to_cpu(pEg->SegBufControl);
 }
 
+/**
+Send data buffer.
+
+@param pEg Pointer to MrfEgRegs structure
+@param dbuf Pointer to data buffer to send
+@param size Number of bytes to send (4 to 2048)
+@return Returns -1 on error, number of bytes sent on success.
+
+The function does not wait for the transmission to be completed. If the
+previous transfer is still in progress the function returns -1.
+*/
 int EvgSendDBuf(volatile struct MrfEgRegs *pEg, char *dbuf, int size)
 {
   int stat;
@@ -1418,6 +1686,18 @@ int EvgSendDBuf(volatile struct MrfEgRegs *pEg, char *dbuf, int size)
   return size;
 }
 
+/**
+Send segmented data buffer.
+
+@param pEg Pointer to MrfEgRegs structure
+@param dbuf Pointer to data buffer to send
+@param segment Starting segment number
+@param size Number of bytes to send (4 to max. 2048 depending on segment number)
+@return Returns -1 on error, number of bytes sent on success.
+
+The function does not wait for the transmission to be completed. If the
+previous transfer is still in progress the function returns -1.
+*/
 int EvgSendSegBuf(volatile struct MrfEgRegs *pEg, char *dbuf, int segment, int size)
 {
   int stat, dummy;
@@ -1466,6 +1746,21 @@ int EvgSendSegBuf(volatile struct MrfEgRegs *pEg, char *dbuf, int segment, int s
   return size;
 }
 
+/**
+Retrieve form factor of EVG/EVM device.
+
+@param pEg Pointer to MrfEgRegs structure
+@return Form Factor
+<table>
+<caption id="form_factor">Form factor</caption>
+<tr><th>ID<th>Form Factor
+<tr><td>0<td>CompactPCI 3U
+<tr><td>2<td>VME64x
+<tr><td>4<td>CompactPCI 6U
+<tr><td>6<td>PXIe 3U
+<tr><td>8<td>mTCA.4
+</table>
+*/
 int EvgGetFormFactor(volatile struct MrfEgRegs *pEg)
 {
   int stat;
@@ -1475,6 +1770,13 @@ int EvgGetFormFactor(volatile struct MrfEgRegs *pEg)
 }
 
 #ifdef __linux__
+/**
+Assign user space interrupt handler for EVG interrupts.
+
+@param pEg Pointer to MrfEgRegs structure
+@param fd File descriptor of EVR device
+@param handler Pointer to user space interrupt handler
+*/
 void EvgIrqAssignHandler(volatile struct MrfEgRegs *pEg, int fd,
 			 void (*handler)(int))
 {
@@ -1497,6 +1799,9 @@ void EvgIrqAssignHandler(volatile struct MrfEgRegs *pEg, int fd,
   EvgIrqHandled(fd);
 }
 
+/**
+@private
+*/
 void EvgIrqUnassignHandler(int vector,
 			 void (*handler)(int))
 {
@@ -1517,6 +1822,29 @@ void EvgIrqUnassignHandler(int vector,
 }
 #endif
 
+/**
+Enable interrupts for EVG.
+
+@param pEg Pointer to MrfEgRegs structure
+@param mask Interrupt mask
+
+<table>
+<caption id="evginterrupts">Interrupt mask</caption>
+<tr><th>Bit<th>Function
+<tr><td>0<td>Receiver violation interrupt
+<tr><td>1<td>Event FIFO full interrupt
+<tr><td>5<td>Data buffer interrupt
+<tr><td>6<td>External interrupt
+<tr><td>8<td>Sequence RAM 0 start interrupt
+<tr><td>9<td>Sequence RAM 1 start interrupt
+<tr><td>12<td>Sequence RAM 0 stop interrupt
+<tr><td>13<td>Sequence RAM 1 stop interrupt
+<tr><td>16<td>Sequence RAM 0 halfway through interrupt
+<tr><td>17<td>Sequence RAM 1 halfway through interrupt
+<tr><td>20<td>Sequence RAM 0 roll over interrupt
+<tr><td>21<td>Sequence RAM 1 roll over interrupt
+</table>
+*/
 int EvgIrqEnable(volatile struct MrfEgRegs *pEg, int mask)
 {
   int control = be32_to_cpu(pEg->IrqEnable) & EVG_IRQ_PCICORE_ENABLE;
@@ -1525,11 +1853,28 @@ int EvgIrqEnable(volatile struct MrfEgRegs *pEg, int mask)
   return be32_to_cpu(pEg->IrqEnable);
 }
 
+/**
+Get interrupt flags for EVR.
+
+@param pEg Pointer to MrfEgRegs structure
+@return Interrupt flags
+
+Please see \ref evginterrupts for flag bit definitions.
+*/
 int EvgGetIrqFlags(volatile struct MrfEgRegs *pEg)
 {
   return be32_to_cpu(pEg->IrqFlag);
 }
 
+/**
+Clear EVG interrupt flags.
+
+@param pEg Pointer to MrfEgRegs structure
+@param mask Bit mask to clear interrupts
+@return Interrupt flags
+
+Please see \ref evginterrupts for interrupt bit definitions.
+*/
 int EvgClearIrqFlags(volatile struct MrfEgRegs *pEg, int mask)
 {
   pEg->IrqFlag = be32_to_cpu(mask);
@@ -1537,12 +1882,23 @@ int EvgClearIrqFlags(volatile struct MrfEgRegs *pEg, int mask)
 }
 
 #ifdef __linux__
+/**
+Function to call when interrupt handler exits.
+
+@param fd File descriptor of EVG device opened.
+*/
 void EvgIrqHandled(int fd)
 {
   ioctl(fd, EV_IOCIRQEN);
 }
 #endif
 
+/**
+Enable/disable Timstamp generator.
+
+@param pEg Pointer to MrfEgRegs structure
+@param enable 0 = disable, 1 = enable
+*/
 int EvgTimestampEnable(volatile struct MrfEgRegs *pEg, int enable)
 {
   if (enable)
@@ -1553,17 +1909,35 @@ int EvgTimestampEnable(volatile struct MrfEgRegs *pEg, int enable)
   return EvgGetTimestampEnable(pEg);
 }
 
+/**
+Get Timstamp generator state.
+
+@param pEg Pointer to MrfEgRegs structure
+@return 0 = Timestamp generator disabled, 1 = timestamp generator enabled
+*/
 int EvgGetTimestampEnable(volatile struct MrfEgRegs *pEg)
 {
   return be32_to_cpu(pEg->TimestampCtrl & be32_to_cpu(1 << C_EVG_TSCTRL_ENABLE));
 }
 
+/**
+Load new seconds value into timestamp generator.
+
+@param pEg Pointer to MrfEgRegs structure
+@param timestamp New seconds value
+*/
 int EvgTimestampLoad(volatile struct MrfEgRegs *pEg, int timestamp)
 {
   pEg->TimestampValue = be32_to_cpu(timestamp);
   pEg->TimestampCtrl |= be32_to_cpu(1 << C_EVG_TSCTRL_LOAD);
 }
 
+/**
+Get seconds value from timestamp generator.
+
+@param pEg Pointer to MrfEgRegs structure
+@return Timestamp generator seconds value.
+*/
 int EvgTimestampGet(volatile struct MrfEgRegs *pEg)
 {
   return be32_to_cpu(pEg->TimestampValue);

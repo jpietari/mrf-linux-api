@@ -1,10 +1,9 @@
-/*
-  fraqdiv.c -- Micro-Research Event Receiver
-               Frequency reference control word computation
-
-  Author: Jukka Pietarinen (MRF)
-  Date:   16.12.2011
-
+/**
+@file fracdiv.c
+@brief Micro-Research Event Receiver
+       Frequency reference control word computation
+@author Jukka Pietarinen (MRF)
+@date 12/16/2011
 */
 
 #include <stdint.h>
@@ -21,6 +20,12 @@ int tablePostDivSel[32] = {
 int tableMdivSel[8] = {
   16, 16, 18, 17, 31, 14, 32, 15};
 
+/**
+Convert Fractional synthesizer control word to frequency in MHz.
+
+@param cw Fractional synthesizer control word
+@return Synthesizer frequency in MHz.
+*/
 double cw_to_freq(long cw)
 {
   double freq;
@@ -68,6 +73,12 @@ double cw_to_freq(long cw)
   return freq;
 }
 
+/**
+Convert frequency in MHz to Fractional synthesizer control word.
+
+@param freq Synthesizer frequency in MHz.
+@param Fractional synthesizer control word.
+*/
 long freq_to_cw(double freq)
 {
   long cw;

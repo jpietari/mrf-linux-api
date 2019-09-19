@@ -1,3 +1,11 @@
+/**
+@file
+FctGetViolation [ <evm-device> ] [ <clear> ] - Get/clear EVM Concentrator RX violation flags.
+
+@param <evm-device> Device name of evm (defaults to /dev/ega3) if left blank.
+@param <clear> Bit mask to clear flags, Bit 0 for port 1, bit 1 for port 2, ...
+@return Violation flags. Bit 0 for RX port 1, bit 1 for RX port 2, ...
+*/
 #include <stdint.h>
 #include <endian.h>
 #include <byteswap.h>
@@ -10,6 +18,7 @@
 #include "../api/fracdiv.h"
 #include "../api/fctapi.h"
 
+/** @private */
 int main(int argc, char *argv[])
 {
   struct MrfEgRegs *pEg;

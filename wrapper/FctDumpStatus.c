@@ -1,6 +1,6 @@
 /**
 @file
-@brief FctDumpStatus [ <evm-device> ] - Display EVM Fan-Out/Concentrator Status.
+FctDumpStatus [ <evm-device> ] - Display EVM Fan-Out/Concentrator Status.
 
 @param <evm-device> Device name of evm (defaults to /dev/ega3) if left blank.
 */
