@@ -1,3 +1,11 @@
+/**
+@file
+EvgSendSWEvent [ <evg-device> ] [ <event code> ] - Send software event.
+
+@param <evg-device> Device name of EVG (defaults to /dev/ega3) if left blank.
+@param <event code> Event code to send.
+*/
+
 #include <stdint.h>
 #include <endian.h>
 #include <byteswap.h>
@@ -8,6 +16,7 @@
 #include <signal.h>
 #include "../api/egapi.h"
 
+/** @private */
 int main(int argc, char *argv[])
 {
   struct MrfEgRegs *pEg;

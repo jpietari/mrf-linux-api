@@ -1,3 +1,12 @@
+/**
+@file
+EvgSetBPoutMap <evg-device> <univ> <map> - Setup Universal I/O output mapping.
+
+@param <evg-device> Device name of EVG.
+@param <univ> Universal I/O output number
+@param <map> Output map, see table \ref evg_output_mapping
+*/
+
 #include <stdint.h>
 #include <endian.h>
 #include <byteswap.h>
@@ -8,6 +17,7 @@
 #include <signal.h>
 #include "../api/egapi.h"
 
+/** @private */
 int main(int argc, char *argv[])
 {
   struct MrfEgRegs *pEg;

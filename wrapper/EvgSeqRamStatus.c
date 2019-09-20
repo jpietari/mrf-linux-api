@@ -1,3 +1,11 @@
+/**
+@file
+EvgSeqRamStatus <evg-device> <ram> - Display EVG Sequence RAM status.
+
+@param <evg-device> Device name of EVG (defaults to /dev/ega3) if left blank.
+@param <ram> Sequence RAM number 0, 1
+*/
+
 #include <stdint.h>
 #include <endian.h>
 #include <byteswap.h>
@@ -8,6 +16,7 @@
 #include <signal.h>
 #include "../api/egapi.h"
 
+/** @private */
 int main(int argc, char *argv[])
 {
   struct MrfEgRegs *pEg;

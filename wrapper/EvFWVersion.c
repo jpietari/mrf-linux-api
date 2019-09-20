@@ -1,3 +1,10 @@
+/**
+@file
+EvFWVersion [ <evr/evg-device> ] - Display EVG/EVM/EVR Firmware Version information
+
+@param <evr/evg-device> Device name of EVG/EVM/EVR (defaults to /dev/ega3) if left blank.
+*/
+
 #include <stdint.h>
 #include <endian.h>
 #include <byteswap.h>
@@ -7,6 +14,7 @@
 #include <signal.h>
 #include "../api/egapi.h"
 
+/** @private */
 int main(int argc, char *argv[])
 {
   struct MrfEgRegs *pEg;

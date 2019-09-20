@@ -1,3 +1,18 @@
+/**
+@file
+EvgSetACInput <evg-device> <bypass> <sync> <div> <delay> - Setup EVG AC input.
+
+@param <evg-device> Device name of EVG (defaults to /dev/ega3) if left blank.
+@param <bypass> 0 - Enable divider and phase shifter, 1 - Bypass divider and phase shifter
+@param <sync> Synchronization select \n 
+            0 - Synchronize to event clock \n 
+            1 - Synchronize to multiplexed counter 7 \n 
+            3 - Synchronize to TTL input 1 \n 
+            5 - Synchronize to TTL input 2
+@param <div> AC input divider 0 to 255 (value of 0 results in divide by 256)
+@param <delay> delay in 0.1 ms steps, 0 to 25.5 ms (value 0 to 255)
+*/
+
 #include <stdint.h>
 #include <endian.h>
 #include <byteswap.h>
@@ -8,6 +23,7 @@
 #include <signal.h>
 #include "../api/egapi.h"
 
+/** @private */
 int main(int argc, char *argv[])
 {
   struct MrfEgRegs *pEg;

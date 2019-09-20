@@ -1,3 +1,15 @@
+/**
+@file
+EvgSetUnivinMap <evg-device> <univin> <trig> <dbus> <irq> <seqtrig> - Setup Universal I/O input mapping.
+
+@param <evg-device> Device name of EVG.
+@param <univin> Universal I/O input number
+@param <trig> Number of Event trigger to trigger, -1 for no trigger
+@param <dbus> Number of Distributed bus bit to map input to, -1 for no mapping
+@param <irq> External interrupt mapping, 0 = no interrupt, 1 = mapped to interrupt
+@param <seqtrig> Number of sequence RAM trigger, -1 for no trigger 
+*/
+
 #include <stdint.h>
 #include <endian.h>
 #include <byteswap.h>
@@ -8,6 +20,7 @@
 #include <signal.h>
 #include "../api/egapi.h"
 
+/** @private */
 int main(int argc, char *argv[])
 {
   struct MrfEgRegs *pEg;

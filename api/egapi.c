@@ -1505,7 +1505,8 @@ Set up output mapping for Universal Output.
 <tr><td>48<td>0x30<td>AC trigger logic output
 <tr><td>49<td>0x31<td>Reserved
 <tr><td>...<td>...<td>...
-<tr><td>61<td>0x3D<td>Reserved
+<tr><td>60<td>0x3D<td>Reserved
+<tr><td>61<td>0x3D<td>Three-state output (for bi-dir ports)
 <tr><td>62<td>62<td>High 1
 <tr><td>63<td>63<td>Low 0
 </table>

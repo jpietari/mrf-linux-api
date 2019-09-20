@@ -1,3 +1,13 @@
+/**
+@file
+EvgSetBPoutMap <evg-device> <bp> <map> - Setup transition board output mapping.
+
+@param <evg-device> Device name of EVG.
+@param <output> Transition board output number
+@param <map> Output map, see table \ref evg_output_mapping
+*/
+
+/** @private */
 #include <stdint.h>
 #include <endian.h>
 #include <byteswap.h>

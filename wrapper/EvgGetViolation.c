@@ -1,3 +1,11 @@
+/**
+@file
+EvgGetViolation [ <evg-device> ] [ <clear> ] - Get/clear EVG Upstream RX violation flag.
+
+@param <evg-device> Device name of EVG (defaults to /dev/ega3) if left blank.
+@param <clear> 0/blank - do not clear, 1 - clear flag
+*/
+
 #include <stdint.h>
 #include <endian.h>
 #include <byteswap.h>
@@ -8,6 +16,7 @@
 #include <signal.h>
 #include "../api/egapi.h"
 
+/** @private */
 int main(int argc, char *argv[])
 {
   struct MrfEgRegs *pEg;
