@@ -1,7 +1,7 @@
 
 CC=gcc
 
-TARGETS := mmap_test simple evrsetup ESS evan_monitor evr_fifo_monitor factest dctest
+TARGETS := mmap_test simple evrsetup evan_monitor evr_fifo_monitor
 
 APIOBJECTS := egapi.o erapi.o fctapi.o fracdiv.o sfpdiag.o
 
