@@ -50,9 +50,10 @@ int main(int argc, char *argv[])
 	  ts = ((long long) evan.TimestampHigh << 32) +
 	    (long long) evan.TimestampLow;
 	  sec = ts / (EVG_RF_FREQ/EVG_RF_DIVIDER);
-	  printf("Timestamp %08x%08x, %16.9Lf, event %02x, dbus %02x\n",
-		 evan.TimestampHigh, evan.TimestampLow, sec, 
-		 evan.EventCode & 0x00ff, evan.EventCode >> 8);
+	  if ((evan.EventCode & 0x0ff) != 0x7e)
+	    printf("Timestamp %08x%08x, %16.9Lf, event %02x, dbus %02x\n",
+		   evan.TimestampHigh, evan.TimestampLow, sec, 
+		   evan.EventCode & 0x00ff, evan.EventCode >> 8);
 	}
       /* Sleep for a while if there are no events in the event analyzer fifo */
       sleep(1);

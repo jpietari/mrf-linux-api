@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
   int              code;
   int              enable;
 
-  if (argc < 6)
+  if (argc < 5)
     {
       printf("Usage: %s /dev/era3 <ram> <code> <enable>\n", argv[0]);
       return -1;

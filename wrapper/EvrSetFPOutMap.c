@@ -29,7 +29,9 @@ int main(int argc, char *argv[])
   if (argc > 3)
     {
       output = atoi(argv[2]);
-      map = atoi(argv[3]);
+      map = strtol(argv[3], NULL, 0);
+      if (map < 255)
+	map |= 0x3f00;
       i = EvrSetFPOutMap(pEr, output, map);
     }
 

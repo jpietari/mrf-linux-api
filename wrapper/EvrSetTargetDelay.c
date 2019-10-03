@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
   int              i;
   int              delay;
 
-  if (argc < 3)
+  if (argc < 2)
     {
       printf("Usage: %s /dev/era3 <delay>\n", argv[0]);
       return -1;
@@ -27,16 +27,14 @@ int main(int argc, char *argv[])
 
   if (argc > 2)
     {
-      delay = atoi(argv[2]);
+      delay = strtol(argv[2], NULL, 0);
       i = EvrSetTargetDelay(pEr, delay);
     }
-  else
-    {
-      i = EvrGetTargetDelay(pEr);
-      printf("%d\n", i);
-    }
+
+  i = EvrGetTargetDelay(pEr);
+  printf("%d\n", i);
 
   EvrClose(fdEr);
 
-  return i;
+  return 0;
 }

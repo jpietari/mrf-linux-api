@@ -33,11 +33,13 @@ int main(int argc, char *argv[])
       return errno;
     }
 
+  /*
   for (i = 1; i < 0x7e; i++)
     EvrSetFIFOEvent(pEr, 0, i, 1);
 
   EvrEnable (pEr, 1);
   EvrMapRamEnable(pEr, 0, 1);
+  */
   
   while (1)
     {

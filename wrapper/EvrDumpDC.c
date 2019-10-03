@@ -35,8 +35,8 @@ int main(int argc, char *argv[])
     return errno;
 
   reffreq = cw_to_freq(EvrGetFracDiv(pEr));
-  printf("DC Enable %d\n", EvrGetDCEnable(pEr));
-  printf("DC Status %d\n", EvrGetDCStatus(pEr));
+  printf("DC Enable %d\n", (EvrGetDCEnable(pEr) ? 1 : 0));
+  printf("DC Status 0x%04x\n", EvrGetDCStatus(pEr));
   printf("DC Delay Target %08lx, (%3.6f ns)\n",
 	 EvrGetTargetDelay(pEr), EvrGetTargetDelay(pEr)/(reffreq*65.536));
   printf("DC Delay Value %08lx, (%3.6f ns)\n",
