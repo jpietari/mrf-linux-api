@@ -35,8 +35,10 @@
 #endif
 #endif
 
-#define EVG_MAX_FPOUT_MAP   32
+#define EVG_MAX_FPOUT_MAP   16
 #define EVG_MAX_UNIVOUT_MAP 32
+#define EVG_MAX_BPOUT_MAP   16
+#define EVG_MAX_BPIN_MAP    16
 #define EVG_MAX_TBOUT_MAP   64
 #define EVG_MAX_FPIN_MAP    16
 #define EVG_MAX_UNIVIN_MAP  16
@@ -114,12 +116,14 @@ struct MrfEgRegs {
   u32  Resv0x0140to0x017F[(0x180-0x140)/4]; /* 0140-017F: Reserved */
   struct MXCStruct MXC[EVG_MAX_MXCS];       /* 0180-01FF: Multiplexed Counter Prescalers */
   u32  Resv0x01C0to0x03FC[(0x400-0x200)/4]; /* 0200-03FF: Reserved */
-  u16  FPOutMap[EVG_MAX_FPOUT_MAP];         /* 0400-043F: Front panel output mapping */
+  u16  FPOutMap[EVG_MAX_FPOUT_MAP];         /* 0400-041F: Front panel output mapping */
+  u16  BPOutMap[EVG_MAX_BPOUT_MAP];         /* 0420-043F: Front panel output mapping */
   u16  UnivOutMap[EVG_MAX_UNIVOUT_MAP];     /* 0440-047F: Universal I/O output mapping */
   u16  TBOutMap[EVG_MAX_TBOUT_MAP];         /* 0480-04FF: TB output mapping */
   u32  FPInMap[EVG_MAX_FPIN_MAP];           /* 0500-053F: Front panel input mapping */
   u32  UnivInMap[EVG_MAX_UNIVIN_MAP];       /* 0540-057F: Universal I/O input mapping */
-  u32  Resv0x0580[(0x600-0x580)/4];         /* 0580-05FF: Reserved */
+  u32  BPInMap[EVG_MAX_BPIN_MAP];           /* 0580-05BF: Backplane input mapping */
+  u32  Resv0x0580[(0x600-0x5C0)/4];         /* 05C0-05FF: Reserved */
   u32  TBInMap[EVG_MAX_TBIN_MAP];           /* 0600-06FF: TB input mapping */
   u32  Resv0x0700[(0x800-0x700)/4];         /* 0700-07FF: Reserved */
   u32  Databuf[EVG_MAX_BUFFER/4];           /* 0800-0FFF: Data Buffer */
@@ -346,11 +350,17 @@ int EvgGetFPinMapDBus(volatile struct MrfEgRegs *pEg, int univ);
 int EvgGetFPinMapIrq(volatile struct MrfEgRegs *pEg, int univ);
 int EvgGetFPinMapSeqtrig(volatile struct MrfEgRegs *pEg, int univ);
 void EvgFPinDump(volatile struct MrfEgRegs *pEg);
-int EvgSetTBinMap(volatile struct MrfEgRegs *pEg, int univ, int trig, int dbus, int irq, int seqtrig);
-int EvgGetTBinMapTrigger(volatile struct MrfEgRegs *pEg, int univ);
-int EvgGetTBinMapDBus(volatile struct MrfEgRegs *pEg, int univ);
-int EvgGetTBinMapIrq(volatile struct MrfEgRegs *pEg, int univ);
-int EvgGetTBinMapSeqtrig(volatile struct MrfEgRegs *pEg, int univ);
+int EvgSetBPinMap(volatile struct MrfEgRegs *pEg, int bp, int trig, int dbus, int irq, int seqtrig);
+int EvgGetBPinMapTrigger(volatile struct MrfEgRegs *pEg, int bp);
+int EvgGetBPinMapDBus(volatile struct MrfEgRegs *pEg, int bp);
+int EvgGetBPinMapIrq(volatile struct MrfEgRegs *pEg, int bp);
+int EvgGetBPinMapSeqtrig(volatile struct MrfEgRegs *pEg, int bp);
+void EvgBPinDump(volatile struct MrfEgRegs *pEg);
+int EvgSetTBinMap(volatile struct MrfEgRegs *pEg, int tb, int trig, int dbus, int irq, int seqtrig);
+int EvgGetTBinMapTrigger(volatile struct MrfEgRegs *pEg, int tb);
+int EvgGetTBinMapDBus(volatile struct MrfEgRegs *pEg, int tb);
+int EvgGetTBinMapIrq(volatile struct MrfEgRegs *pEg, int tb);
+int EvgGetTBinMapSeqtrig(volatile struct MrfEgRegs *pEg, int tb);
 void EvgTBinDump(volatile struct MrfEgRegs *pEg);
 int EvgSetTriggerEvent(volatile struct MrfEgRegs *pEg, int trigger, int code, int enable);
 int EvgGetTriggerEventCode(volatile struct MrfEgRegs *pEg, int trigger);
@@ -360,6 +370,8 @@ int EvgSetUnivOutMap(volatile struct MrfEgRegs *pEg, int output, int map);
 int EvgGetUnivOutMap(volatile struct MrfEgRegs *pEg, int output);
 int EvgSetFPOutMap(volatile struct MrfEgRegs *pEg, int output, int map);
 int EvgGetFPOutMap(volatile struct MrfEgRegs *pEg, int output);
+int EvgSetBPOutMap(volatile struct MrfEgRegs *pEg, int output, int map);
+int EvgGetBPOutMap(volatile struct MrfEgRegs *pEg, int output);
 int EvgSetTBOutMap(volatile struct MrfEgRegs *pEg, int output, int map);
 int EvgGetTBOutMap(volatile struct MrfEgRegs *pEg, int output);
 int EvgSetDBufMode(volatile struct MrfEgRegs *pEg, int enable);

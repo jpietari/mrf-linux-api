@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
   if (argc > 4)
     {
       event = atoi(argv[3]);
-      enable = atoi(argv[3]);
+      enable = atoi(argv[4]);
       i = EvgSetTriggerEvent(pEg, trig, event, enable);
     }
 

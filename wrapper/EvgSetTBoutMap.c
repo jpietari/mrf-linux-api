@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
   int              output;
   int              map;
 
-  if (argc < 6)
+  if (argc < 4)
     {
       printf("Usage: %s /dev/ega3 <output> <map>\n", argv[0]);
       return -1;

@@ -14,6 +14,7 @@ EvrDumpDC [ <evr-device> ] - Display EVR Delay Compensation Status.
 #include <sys/ioctl.h>
 #include <signal.h>
 #include "../api/erapi.h"
+#include "../api/fracdiv.h"
 
 /** @private */
 int main(int argc, char *argv[])

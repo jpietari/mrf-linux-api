@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
   int              code;
   int              enable;
 
-  if (argc < 6)
+  if (argc < 4)
     {
       printf("Usage: %s /dev/era3 <ram> <code> <enable>\n", argv[0]);
       return -1;
@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
   if (fdEr == -1)
     return errno;
 
-  if (argc > 4)
+  if (argc > 3)
     {
       ram = atoi(argv[2]);
       code = atoi(argv[3]);

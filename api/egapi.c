@@ -1407,6 +1407,163 @@ void EvgTBinDump(volatile struct MrfEgRegs *pEg)
 }
 
 /**
+Set up Backplane Input Mappings.
+
+@param pEg Pointer to MrfEgRegs structure
+@param bp Number of Backplane input
+@param trig Number of Event trigger to trigger, -1 for no trigger
+@param dbus Number of Distributed bus bit to map input to, -1 for no mapping
+@param irq External interrupt mapping, 0 = no interrupt, 1 = mapped to interrupt
+@param seqtrig Number of sequence RAM trigger, -1 for no trigger 
+*/
+int EvgSetBPinMap(volatile struct MrfEgRegs *pEg, int bp, int trig, int dbus, int irq, int seqtrig)
+{
+  int map = 0;
+
+  if (bp < 0 || bp >= EVG_MAX_BPIN_MAP)
+    return -1;
+
+  if (trig >= EVG_MAX_TRIGGERS)
+    return -1;
+
+  if (dbus >= EVG_DBUS_BITS)
+    return -1;
+
+  if (seqtrig >= EVG_MAX_SEQRAMS)
+    return -1;
+
+  if (trig >= 0)
+    map |= (1 << (C_EVG_INMAP_TRIG_BASE + trig));
+
+  if (dbus >= 0)
+    map |= (1 << (C_EVG_INMAP_DBUS_BASE + dbus));
+
+  if (irq)
+    map |= (1 << (C_EVG_INMAP_IRQ));
+
+  if (seqtrig >= 0)
+    map |= (1 << (C_EVG_INMAP_SEQTRIG_BASE + seqtrig));
+
+  pEg->BPInMap[bp] = be32_to_cpu(map);
+
+  return 0;
+}
+
+/**
+Get Backplane Input to Event Trigger Mappings.
+
+@param pEg Pointer to MrfEgRegs structure
+@param bp Number of Backplane input
+@return Number of Event trigger to trigger, -1 for no trigger
+*/
+int EvgGetBPinMapTrigger(volatile struct MrfEgRegs *pEg, int bp)
+{
+  int mask, i;
+
+  if (bp < 0 || bp >= EVG_MAX_BPIN_MAP)
+    return -1;
+
+  mask = (be32_to_cpu(pEg->BPInMap[bp]) >> C_EVG_INMAP_TRIG_BASE) &
+    ((1 << EVG_MAX_TRIGGERS) - 1);
+  if (!mask)
+    return -1;
+  for (i = 0; !(mask & 1); i++)
+    mask >>= 1;
+
+  return i;
+}
+
+/**
+Get Backplane Input to Distributed Bus Bit Mappings.
+
+@param pEg Pointer to MrfEgRegs structure
+@param bp Number of Backplane input
+@return Number of Distributed bus bit input is mapped to, -1 for no trigger
+*/
+int EvgGetBPinMapDBus(volatile struct MrfEgRegs *pEg, int bp)
+{
+  int mask, i;
+
+  if (bp < 0 || bp >= EVG_MAX_BPIN_MAP)
+    return -1;
+
+  mask = (be32_to_cpu(pEg->BPInMap[bp]) >> C_EVG_INMAP_DBUS_BASE) &
+    ((1 << EVG_DBUS_BITS) - 1);
+  if (!mask)
+    return -1;
+  for (i = 0; !(mask & 1); i++)
+    mask >>= 1;
+
+  return i;
+}
+
+/**
+Get Backplane Input External Interrupt Mapping.
+
+@param pEg Pointer to MrfEgRegs structure
+@param bp Number of Backplane input
+@return 0 = Interrupt not mapped, 1 = interrupt mapped.
+*/
+int EvgGetBPinMapIrq(volatile struct MrfEgRegs *pEg, int bp)
+{
+  int mask;
+
+  if (bp < 0 || bp >= EVG_MAX_BPIN_MAP)
+    return -1;
+
+  mask = (be32_to_cpu(pEg->BPInMap[bp]) >> C_EVG_INMAP_IRQ) & 1;
+
+  return mask;
+}
+
+/**
+Get Backplane Input Sequence RAM Trigger Mapping.
+
+@param pEg Pointer to MrfEgRegs structure
+@param bp Number of Backplane input
+@return Number of sequencer trigger, -1 no trigger.
+*/
+int EvgGetBPinMapSeqtrig(volatile struct MrfEgRegs *pEg, int bp)
+{
+  int mask, i;
+
+  if (bp < 0 || bp >= EVG_MAX_BPIN_MAP)
+    return -1;
+
+  mask = (be32_to_cpu(pEg->BPInMap[bp]) >> C_EVG_INMAP_SEQTRIG_BASE) &
+    ((1 << EVG_MAX_SEQRAMS) - 1);
+  if (!mask)
+    return -1;
+  for (i = 0; !(mask & 1); i++)
+    mask >>= 1;
+
+  return i;
+}
+
+/**
+Show Backplane Input Mappings.
+
+@param pEg Pointer to MrfEgRegs structure
+*/
+void EvgBPinDump(volatile struct MrfEgRegs *pEg)
+{
+  int bp;
+
+  for (bp = 0; bp < EVG_MAX_BPIN_MAP; bp++)
+    {
+      int map = be32_to_cpu(pEg->BPInMap[bp]); 
+      DEBUG_PRINTF("BPIn%d Mapped to Trig %08x, DBus %02x, IRQ %d, seqtrig %d\n", bp,
+		   (map >> C_EVG_INMAP_TRIG_BASE)
+		   & ((1 << EVG_MAX_TRIGGERS) - 1),
+		   (map >> C_EVG_INMAP_DBUS_BASE)
+		   & ((1 << EVG_DBUS_BITS) - 1),
+		   (map >> C_EVG_INMAP_IRQ) & 1,
+		   (map >> C_EVG_INMAP_SEQTRIG_BASE)
+		   & ((1 << EVG_MAX_SEQRAMS) - 1));
+    }
+}
+
+/**
 Set up Event Trigger.
 
 @param pEg Pointer to MrfEgRegs structure
@@ -1563,6 +1720,36 @@ Please see \ref evg_output_mapping for details about the mapping.
 int EvgGetFPOutMap(volatile struct MrfEgRegs *pEg, int output)
 {
   return be16_to_cpu(pEg->FPOutMap[output]);
+}
+
+/**
+Set up output mapping for Backplane Output.
+
+Please see \ref evg_output_mapping for details about the mapping.
+
+@param pEg Pointer to MrfEgRegs structure
+@param output Number of Backplane Output
+@param map Output map
+*/
+int EvgSetBPOutMap(volatile struct MrfEgRegs *pEg, int output, int map)
+{
+  pEg->BPOutMap[output] = be16_to_cpu(map);
+
+  return be16_to_cpu(pEg->BPOutMap[output]);
+}
+
+/**
+Retrieve output mapping for Backplane Output.
+
+Please see \ref evg_output_mapping for details about the mapping.
+
+@param pEg Pointer to MrfEgRegs structure
+@param output Number of Backplane Output
+@return Output map for output
+*/
+int EvgGetBPOutMap(volatile struct MrfEgRegs *pEg, int output)
+{
+  return be16_to_cpu(pEg->BPOutMap[output]);
 }
 
 /**
