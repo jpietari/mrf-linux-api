@@ -195,7 +195,8 @@ struct MrfErRegs {
   u32  ConfigRAM[(0x8200-0x8100)/4];        /* 8100-81FF: Reserved */
   u32  SFPEEPROM[(0x8300-0x8200)/4];        /* 8200-82FF: Reserved */
   u32  SFPDiag[(0x8400-0x8300)/4];          /* 8300-83FF: Reserved */
-  u32  Resv0x8000[(0x8800-0x8400)/4];       /* 8400-87FF: Reserved */
+  u32  RTMDelay[(0x8440-0x8400)/4];         /* 8400-843F: RTM Universal Delay */
+  u32  Resv0x8000[(0x8800-0x8440)/4];       /* 8440-87FF: Reserved */
   u32  SegBufSize[256];                     /* 8800-8BFF: Segment size registers */
   u32  Resv0x8C00[(0x8F80-0x8C00)/4];       /* 8C00-8F7F: Reserved */
   u32  SegIrqReg[8];                        /* 8F80-8F9F: Segment IRQ enable */
@@ -515,3 +516,6 @@ void EvrSeqRamStatus(volatile struct MrfErRegs *pEr, int ram);
 int EvrGetTopologyID(volatile struct MrfErRegs *pEr);
 int EvrGetDCStatus(volatile struct MrfErRegs *pEr);
 int EvrGetDCDelay(volatile struct MrfErRegs *pEr);
+int EvrGetDCIntDelay(volatile struct MrfErRegs *pEr);
+int EvrGetDCPathValue(volatile struct MrfErRegs *pEr);
+int EvrRTMUnivSetDelay(volatile struct MrfErRegs *pEr, int dlymod, int dly);

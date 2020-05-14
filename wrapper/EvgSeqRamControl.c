@@ -1,6 +1,6 @@
 /**
 @file
-EvgSeqRamControl <evg-device> <ram> <enable> <single> <recycle> <reset> <trigsel> - Control EVG Sequencer.
+EvgSeqRamControl <evg-device> <ram> <enable> <single> <recycle> <reset> <trigsel> <mask> - Control EVG Sequencer.
 
 @param <evg-device> Device name of EVG (defaults to /dev/ega3) if left blank.
 @param <ram> Sequence RAM number 0, 1
@@ -9,6 +9,7 @@ EvgSeqRamControl <evg-device> <ram> <enable> <single> <recycle> <reset> <trigsel
 @param <recycle> 0 - stop after end-of-sequence event (wait for next trigger), 1 - immediately restart sequence (without waiting for trigger)
 @param <reset> 0 - do nothing, 1 - stop, reset and disable sequence
 @param <trigsel> Trigger select. See table \ref evgtrigsel
+@param <mask> event software enable/mask register
 
 <table>
 <caption id="evgtrigsel">Sequence RAM trigger selection</caption>
@@ -49,10 +50,11 @@ int main(int argc, char *argv[])
   int              recycle;
   int              reset;
   int              trigsel;
-
-  if (argc < 6)
+  int              mask;
+  
+  if (argc < 9)
     {
-      printf("Usage: %s /dev/ega3 <ram> <enable> <single> <recycle> <reset> <trigsel>\n", argv[0]);
+      printf("Usage: %s /dev/ega3 <ram> <enable> <single> <recycle> <reset> <trigsel> <mask>\n", argv[0]);
       return -1;
     }
 
@@ -60,7 +62,7 @@ int main(int argc, char *argv[])
   if (fdEg == -1)
     return errno;
 
-  if (argc > 7)
+  if (argc > 8)
     {
       ram = atoi(argv[2]);
       enable = atoi(argv[3]);
@@ -68,7 +70,8 @@ int main(int argc, char *argv[])
       recycle = atoi(argv[5]);
       reset = atoi(argv[6]);
       trigsel = atoi(argv[7]);
-      i = EvgSeqRamControl(pEg, ram, enable, single, recycle, reset, trigsel);
+      mask = atoi(argv[8]);
+      i = EvgSeqRamControl(pEg, ram, enable, single, recycle, reset, trigsel, mask);
     }
 
   EvgClose(fdEg);

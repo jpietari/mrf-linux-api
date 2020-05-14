@@ -8,6 +8,7 @@ EvgSetBPinMap <evg-device> <bp> <trig> <dbus> <irq> <seqtrig> - Setup backplane 
 @param <dbus> Number of Distributed bus bit to map input to, -1 for no mapping
 @param <irq> External interrupt mapping, 0 = no interrupt, 1 = mapped to interrupt
 @param <seqtrig> Number of sequence RAM trigger, -1 for no trigger 
+@param <mask> Sequence mask enable/disable field
 */
 
 #include <stdint.h>
@@ -31,10 +32,11 @@ int main(int argc, char *argv[])
   int              dbus;
   int              irq;
   int              seqtrig;
-
-  if (argc < 6)
+  int              mask;
+  
+  if (argc < 8)
     {
-      printf("Usage: %s /dev/ega3 <bp> <trig> <dbus> <irq> <seqtrig>\n", argv[0]);
+      printf("Usage: %s /dev/ega3 <bp> <trig> <dbus> <irq> <seqtrig> <mask>\n", argv[0]);
       return -1;
     }
 
@@ -42,14 +44,15 @@ int main(int argc, char *argv[])
   if (fdEg == -1)
     return errno;
 
-  if (argc > 6)
+  if (argc > 7)
     {
       bp = atoi(argv[2]);
       trig = atoi(argv[3]);
       dbus = atoi(argv[4]);
       irq = atoi(argv[5]);
       seqtrig = atoi(argv[6]);
-      i = EvgSetBPinMap(pEg, bp, trig, dbus, irq, seqtrig);
+      mask = atoi(argv[7]);
+      i = EvgSetBPinMap(pEg, bp, trig, dbus, irq, seqtrig, mask);
     }
 
   EvgClose(fdEg);

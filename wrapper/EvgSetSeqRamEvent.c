@@ -17,10 +17,11 @@ int main(int argc, char *argv[])
   int              pos;
   int              timestamp;
   int              event;
+  int              mask;
 
   if (argc < 6)
     {
-      printf("Usage: %s /dev/ega3 <ram> <pos> <timestamp> <event code>\n", argv[0]);
+      printf("Usage: %s /dev/ega3 <ram> <pos> <timestamp> <event code> [<mask>]\n", argv[0]);
       return -1;
     }
 
@@ -34,7 +35,11 @@ int main(int argc, char *argv[])
       pos = atoi(argv[3]);
       timestamp = atoi(argv[4]);
       event = atoi(argv[5]);
-      i = EvgSetSeqRamEvent(pEg, ram, pos, timestamp, event);
+      if (argc > 6)
+	mask = atoi(argv[6]);
+      else
+	mask = 0;
+      i = EvgSetSeqRamEvent(pEg, ram, pos, timestamp, event, mask);
     }
 
   EvgClose(fdEg);

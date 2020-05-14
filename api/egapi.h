@@ -275,6 +275,7 @@ struct MrfEgRegs {
 #define C_EVG_INMAP_SEQENA_BASE    12
 #define C_EVG_INMAP_DBUS_BASE      16
 #define C_EVG_INMAP_IRQ            24
+#define C_EVG_INMAP_SEQMASK        24
 /* -- Multiplexed Counter Mapping Bits */
 #define C_EVG_MXC_READ             31
 #define C_EVG_MXCMAP_TRIG_BASE     0
@@ -331,32 +332,32 @@ void EvgACDump(volatile struct MrfEgRegs *pEg);
 int EvgSetRFInput(volatile struct MrfEgRegs *pEg, int RFsel, int div);
 int EvgSetFracDiv(volatile struct MrfEgRegs *pEg, int fracdiv);
 int EvgGetFracDiv(volatile struct MrfEgRegs *pEg);
-int EvgSetSeqRamEvent(volatile struct MrfEgRegs *pEg, int ram, int pos, unsigned int timestamp, int code);
+int EvgSetSeqRamEvent(volatile struct MrfEgRegs *pEg, int ram, int pos, unsigned int timestamp, int code, int mask);
 unsigned int EvgGetSeqRamTimestamp(volatile struct MrfEgRegs *pEg, int ram, int pos);
 int EvgGetSeqRamEvent(volatile struct MrfEgRegs *pEg, int ram, int pos);
 void EvgSeqRamDump(volatile struct MrfEgRegs *pEg, int ram);
-int EvgSeqRamControl(volatile struct MrfEgRegs *pEg, int ram, int enable, int single, int recycle, int reset, int trigsel);
+int EvgSeqRamControl(volatile struct MrfEgRegs *pEg, int ram, int enable, int single, int recycle, int reset, int trigsel, int mask);
 int EvgSeqRamSWTrig(volatile struct MrfEgRegs *pEg, int ram);
 void EvgSeqRamStatus(volatile struct MrfEgRegs *pEg, int ram);
-int EvgSetUnivinMap(volatile struct MrfEgRegs *pEg, int univ, int trig, int dbus, int irq, int seqtrig);
+int EvgSetUnivinMap(volatile struct MrfEgRegs *pEg, int univ, int trig, int dbus, int irq, int seqtrig, int mask);
 int EvgGetUnivinMapTrigger(volatile struct MrfEgRegs *pEg, int univ);
 int EvgGetUnivinMapDBus(volatile struct MrfEgRegs *pEg, int univ);
 int EvgGetUnivinMapIrq(volatile struct MrfEgRegs *pEg, int univ);
 int EvgGetUnivinMapSeqtrig(volatile struct MrfEgRegs *pEg, int univ);
 void EvgUnivinDump(volatile struct MrfEgRegs *pEg);
-int EvgSetFPinMap(volatile struct MrfEgRegs *pEg, int univ, int trig, int dbus, int irq, int seqtrig);
+int EvgSetFPinMap(volatile struct MrfEgRegs *pEg, int univ, int trig, int dbus, int irq, int seqtrig, int mask);
 int EvgGetFPinMapTrigger(volatile struct MrfEgRegs *pEg, int univ);
 int EvgGetFPinMapDBus(volatile struct MrfEgRegs *pEg, int univ);
 int EvgGetFPinMapIrq(volatile struct MrfEgRegs *pEg, int univ);
 int EvgGetFPinMapSeqtrig(volatile struct MrfEgRegs *pEg, int univ);
 void EvgFPinDump(volatile struct MrfEgRegs *pEg);
-int EvgSetBPinMap(volatile struct MrfEgRegs *pEg, int bp, int trig, int dbus, int irq, int seqtrig);
+int EvgSetBPinMap(volatile struct MrfEgRegs *pEg, int bp, int trig, int dbus, int irq, int seqtrig, int mask);
 int EvgGetBPinMapTrigger(volatile struct MrfEgRegs *pEg, int bp);
 int EvgGetBPinMapDBus(volatile struct MrfEgRegs *pEg, int bp);
 int EvgGetBPinMapIrq(volatile struct MrfEgRegs *pEg, int bp);
 int EvgGetBPinMapSeqtrig(volatile struct MrfEgRegs *pEg, int bp);
 void EvgBPinDump(volatile struct MrfEgRegs *pEg);
-int EvgSetTBinMap(volatile struct MrfEgRegs *pEg, int tb, int trig, int dbus, int irq, int seqtrig);
+int EvgSetTBinMap(volatile struct MrfEgRegs *pEg, int tb, int trig, int dbus, int irq, int seqtrig, int mask);
 int EvgGetTBinMapTrigger(volatile struct MrfEgRegs *pEg, int tb);
 int EvgGetTBinMapDBus(volatile struct MrfEgRegs *pEg, int tb);
 int EvgGetTBinMapIrq(volatile struct MrfEgRegs *pEg, int tb);

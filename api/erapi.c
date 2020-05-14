@@ -2836,3 +2836,24 @@ int EvrGetDCDelay(volatile struct MrfErRegs *pEr)
 {
   return be32_to_cpu(pEr->dc_int_value) + be32_to_cpu(pEr->dc_value);
 }
+
+int EvrGetDCIntDelay(volatile struct MrfErRegs *pEr)
+{
+  return be32_to_cpu(pEr->dc_int_value);
+}
+
+int EvrGetDCPathValue(volatile struct MrfErRegs *pEr)
+{
+  return be32_to_cpu(pEr->dc_value);
+}
+
+int EvrRTMUnivSetDelay(volatile struct MrfErRegs *pEr, int dlymod, int dly)
+{
+  if (dlymod >= 0 && dlymod < 10)
+    {
+      pEr->RTMDelay[dlymod] = be32_to_cpu(dly);
+      return dly; /* be32_to_cpu(pEr->RTMDelay[dlymod]); */
+    }
+  else
+    return -1;
+}

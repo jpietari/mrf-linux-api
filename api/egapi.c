@@ -750,8 +750,9 @@ Set sequence RAM event. This function writes an event into the sequence RAM.
 @param pos Sequence RAM position (0 to 2047)
 @param timestamp 32 bit timestamp of event
 @param code Event code
+@param mask Event mask field
 */
-int EvgSetSeqRamEvent(volatile struct MrfEgRegs *pEg, int ram, int pos, unsigned int timestamp, int code)
+int EvgSetSeqRamEvent(volatile struct MrfEgRegs *pEg, int ram, int pos, unsigned int timestamp, int code, int mask)
 {
   if (ram < 0 || ram >= EVG_SEQRAMS)
     return -1;
@@ -763,7 +764,7 @@ int EvgSetSeqRamEvent(volatile struct MrfEgRegs *pEg, int ram, int pos, unsigned
     return -1;
 
   pEg->SeqRam[ram][pos].Timestamp = be32_to_cpu(timestamp);
-  pEg->SeqRam[ram][pos].EventCode = be32_to_cpu(code);
+  pEg->SeqRam[ram][pos].EventCode = be32_to_cpu(((mask & 0x00ff) << 8) + code);
 
   return 0;
 }
@@ -803,7 +804,26 @@ int EvgGetSeqRamEvent(volatile struct MrfEgRegs *pEg, int ram, int pos)
   if (pos < 0 || pos >= EVG_MAX_SEQRAMEV)
     return -1;
 
-  return be32_to_cpu(pEg->SeqRam[ram][pos].EventCode);
+  return be32_to_cpu(pEg->SeqRam[ram][pos].EventCode) & EVG_MAX_EVENT_CODE;
+}
+
+/**
+Get sequence RAM event mask.
+
+@param pEg Pointer to MrfEgRegs structure
+@param ram RAM number
+@param pos Sequence RAM position (0 to 2047)
+@return Event mask at RAM position pos
+*/
+int EvgGetSeqRamMask(volatile struct MrfEgRegs *pEg, int ram, int pos)
+{
+  if (ram < 0 || ram >= EVG_SEQRAMS)
+    return -1;
+
+  if (pos < 0 || pos >= EVG_MAX_SEQRAMEV)
+    return -1;
+
+  return be32_to_cpu(pEg->SeqRam[ram][pos].EventCode) >> 8;
 }
 
 /**
@@ -821,10 +841,12 @@ void EvgSeqRamDump(volatile struct MrfEgRegs *pEg, int ram)
  
   for (pos = 0; pos < EVG_MAX_SEQRAMEV; pos++)
     if (pEg->SeqRam[ram][pos].EventCode)
-      DEBUG_PRINTF("Ram%d: Timestamp %08x Code %02x\n",
+      DEBUG_PRINTF("Ram%d: Timestamp %08x Code %02x Mask %02x\n",
 		   ram,
 		   be32_to_cpu(pEg->SeqRam[ram][pos].Timestamp),
-		   be32_to_cpu(pEg->SeqRam[ram][pos].EventCode));
+		   be32_to_cpu(pEg->SeqRam[ram][pos].EventCode) &
+			       EVG_MAX_EVENT_CODE,
+		   be32_to_cpu(pEg->SeqRam[ram][pos].EventCode) >> 8);
 }
 
 /**
@@ -854,7 +876,7 @@ Control sequence RAM.
 <tr><td>0x1F<td>Trigger disabled
 </table>
 */
-int EvgSeqRamControl(volatile struct MrfEgRegs *pEg, int ram, int enable, int single, int recycle, int reset, int trigsel)
+int EvgSeqRamControl(volatile struct MrfEgRegs *pEg, int ram, int enable, int single, int recycle, int reset, int trigsel, int mask)
 {
   int control;
 
@@ -881,6 +903,12 @@ int EvgSeqRamControl(volatile struct MrfEgRegs *pEg, int ram, int enable, int si
   if (reset == 1)
     control |= (1 << C_EVG_SQRC_RESET);
 
+  if (mask >= 0 && mask < 0x100)
+    {
+      control &= ~((0x00ff) << 8);
+      control |= ((mask & 0x00ff) << 8);
+    }
+  
   if (trigsel >= 0 && trigsel <= C_EVG_SEQTRIG_MAX)
     {
       control &= ~(C_EVG_SEQTRIG_MAX << C_EVG_SQRC_TRIGSEL_LOW);
@@ -932,7 +960,9 @@ void EvgSeqRamStatus(volatile struct MrfEgRegs *pEg, int ram)
     DEBUG_PRINTF(" SINGLE");
   if (control & (1 << C_EVG_SQRC_RECYCLE))
     DEBUG_PRINTF(" RECYCLE");
-  DEBUG_PRINTF(" Trigsel %02x\n", (control >> C_EVG_SQRC_TRIGSEL_LOW) & C_EVG_SEQTRIG_MAX);
+  DEBUG_PRINTF(" Trigsel %02x Mask %02x\n",
+	       (control >> C_EVG_SQRC_TRIGSEL_LOW) & C_EVG_SEQTRIG_MAX,
+	       (control >> 8) & 0x00ff);
 }
 
 /**
@@ -944,8 +974,9 @@ Set up Universal I/O Input Mappings.
 @param dbus Number of Distributed bus bit to map input to, -1 for no mapping
 @param irq External interrupt mapping, 0 = no interrupt, 1 = mapped to interrupt
 @param seqtrig Number of sequence RAM trigger, -1 for no trigger 
+@param mask Sequence mask enable/disable field
 */
-int EvgSetUnivinMap(volatile struct MrfEgRegs *pEg, int univ, int trig, int dbus, int irq, int seqtrig)
+int EvgSetUnivinMap(volatile struct MrfEgRegs *pEg, int univ, int trig, int dbus, int irq, int seqtrig, int mask)
 {
   int map = 0;
 
@@ -973,6 +1004,9 @@ int EvgSetUnivinMap(volatile struct MrfEgRegs *pEg, int univ, int trig, int dbus
   if (seqtrig >= 0)
     map |= (1 << (C_EVG_INMAP_SEQTRIG_BASE + seqtrig));
 
+  if (mask >= 0)
+    map |= ((mask & 0x00ff) << C_EVG_INMAP_SEQMASK);
+  
   pEg->UnivInMap[univ] = be32_to_cpu(map);
 
   return 0;
@@ -1081,14 +1115,15 @@ void EvgUnivinDump(volatile struct MrfEgRegs *pEg)
   for (univ = 0; univ < EVG_MAX_UNIVIN_MAP; univ++)
     {
       int map = be32_to_cpu(pEg->UnivInMap[univ]); 
-      DEBUG_PRINTF("UnivIn%d Mapped to Trig %08x, DBus %02x, IRQ %d, seqtrig %d\n", univ,
+      DEBUG_PRINTF("UnivIn%d Mapped to Trig %08x, DBus %02x, IRQ %d, seqtrig %d, seqmask %02x\n", univ,
 		   (map >> C_EVG_INMAP_TRIG_BASE)
 		   & ((1 << EVG_MAX_TRIGGERS) - 1),
 		   (map >> C_EVG_INMAP_DBUS_BASE)
 		   & ((1 << EVG_DBUS_BITS) - 1),
 		   (map >> C_EVG_INMAP_IRQ) & 1,
 		   (map >> C_EVG_INMAP_SEQTRIG_BASE)
-		   & ((1 << EVG_MAX_SEQRAMS) - 1));
+		   & ((1 << EVG_MAX_SEQRAMS) - 1),
+		   (map >> C_EVG_INMAP_SEQMASK) & 0x00ff);
     }
 }
 
@@ -1096,17 +1131,18 @@ void EvgUnivinDump(volatile struct MrfEgRegs *pEg)
 Set up Front panel Input Mappings.
 
 @param pEg Pointer to MrfEgRegs structure
-@param univ Number of Front panel input
+@param fpin Number of Front panel input
 @param trig Number of Event trigger to trigger, -1 for no trigger
 @param dbus Number of Distributed bus bit to map input to, -1 for no mapping
 @param irq External interrupt mapping, 0 = no interrupt, 1 = mapped to interrupt
 @param seqtrig Number of sequence RAM trigger, -1 for no trigger 
+@param mask Sequence mask enable/disable field
 */
-int EvgSetFPinMap(volatile struct MrfEgRegs *pEg, int univ, int trig, int dbus, int irq, int seqtrig)
+int EvgSetFPinMap(volatile struct MrfEgRegs *pEg, int fpin, int trig, int dbus, int irq, int seqtrig, int mask)
 {
   int map = 0;
 
-  if (univ < 0 || univ >= EVG_MAX_UNIVIN_MAP)
+  if (fpin < 0 || fpin >= EVG_MAX_UNIVIN_MAP)
     return -1;
 
   if (trig >= EVG_MAX_TRIGGERS)
@@ -1130,7 +1166,10 @@ int EvgSetFPinMap(volatile struct MrfEgRegs *pEg, int univ, int trig, int dbus, 
   if (seqtrig >= 0)
     map |= (1 << (C_EVG_INMAP_SEQTRIG_BASE + seqtrig));
 
-  pEg->FPInMap[univ] = be32_to_cpu(map);
+  if (mask >= 0)
+    map |= ((mask & 0x00ff) << C_EVG_INMAP_SEQMASK);
+  
+  pEg->FPInMap[fpin] = be32_to_cpu(map);
 
   return 0;
 }
@@ -1139,7 +1178,7 @@ int EvgSetFPinMap(volatile struct MrfEgRegs *pEg, int univ, int trig, int dbus, 
 Get Front panel Input to Event Trigger Mappings.
 
 @param pEg Pointer to MrfEgRegs structure
-@param univ Number of Front panel input
+@param fp Number of Front panel input
 @return Number of Event trigger to trigger, -1 for no trigger
 */
 int EvgGetFPinMapTrigger(volatile struct MrfEgRegs *pEg, int fp)
@@ -1238,14 +1277,15 @@ void EvgFPinDump(volatile struct MrfEgRegs *pEg)
   for (fp = 0; fp < EVG_MAX_FPIN_MAP; fp++)
     {
       int map = be32_to_cpu(pEg->FPInMap[fp]); 
-      DEBUG_PRINTF("FPIn%d Mapped to Trig %08x, DBus %02x, IRQ %d, seqtrig %d\n", fp,
+      DEBUG_PRINTF("FPIn%d Mapped to Trig %08x, DBus %02x, IRQ %d, seqtrig %d, seqmask %02x\n", fp,
 		   (map >> C_EVG_INMAP_TRIG_BASE)
 		   & ((1 << EVG_MAX_TRIGGERS) - 1),
 		   (map >> C_EVG_INMAP_DBUS_BASE)
 		   & ((1 << EVG_DBUS_BITS) - 1),
 		   (map >> C_EVG_INMAP_IRQ) & 1,
 		   (map >> C_EVG_INMAP_SEQTRIG_BASE)
-		   & ((1 << EVG_MAX_SEQRAMS) - 1));
+		   & ((1 << EVG_MAX_SEQRAMS) - 1),
+		   (map >> C_EVG_INMAP_SEQMASK) & 0x00ff);
     }
 }
 
@@ -1258,8 +1298,9 @@ Set up Transition board Input Mappings.
 @param dbus Number of Distributed bus bit to map input to, -1 for no mapping
 @param irq External interrupt mapping, 0 = no interrupt, 1 = mapped to interrupt
 @param seqtrig Number of sequence RAM trigger, -1 for no trigger 
+@param mask Sequence mask enable/disable field
 */
-int EvgSetTBinMap(volatile struct MrfEgRegs *pEg, int tb, int trig, int dbus, int irq, int seqtrig)
+ int EvgSetTBinMap(volatile struct MrfEgRegs *pEg, int tb, int trig, int dbus, int irq, int seqtrig, int mask)
 {
   int map = 0;
 
@@ -1287,6 +1328,9 @@ int EvgSetTBinMap(volatile struct MrfEgRegs *pEg, int tb, int trig, int dbus, in
   if (seqtrig >= 0)
     map |= (1 << (C_EVG_INMAP_SEQTRIG_BASE + seqtrig));
 
+  if (mask >= 0)
+    map |= ((mask & 0x00ff) << C_EVG_INMAP_SEQMASK);
+  
   pEg->TBInMap[tb] = be32_to_cpu(map);
 
   return 0;
@@ -1395,14 +1439,15 @@ void EvgTBinDump(volatile struct MrfEgRegs *pEg)
   for (tb = 0; tb < EVG_MAX_TBIN_MAP; tb++)
     {
       int map = be32_to_cpu(pEg->TBInMap[tb]); 
-      DEBUG_PRINTF("TBIn%d Mapped to Trig %08x, DBus %02x, IRQ %d, seqtrig %d\n", tb,
+      DEBUG_PRINTF("TBIn%d Mapped to Trig %08x, DBus %02x, IRQ %d, seqtrig %d, seqmask %02x\n", tb,
 		   (map >> C_EVG_INMAP_TRIG_BASE)
 		   & ((1 << EVG_MAX_TRIGGERS) - 1),
 		   (map >> C_EVG_INMAP_DBUS_BASE)
 		   & ((1 << EVG_DBUS_BITS) - 1),
 		   (map >> C_EVG_INMAP_IRQ) & 1,
 		   (map >> C_EVG_INMAP_SEQTRIG_BASE)
-		   & ((1 << EVG_MAX_SEQRAMS) - 1));
+		   & ((1 << EVG_MAX_SEQRAMS) - 1),
+		   (map >> C_EVG_INMAP_SEQMASK) & 0x00ff);
     }
 }
 
@@ -1415,8 +1460,9 @@ Set up Backplane Input Mappings.
 @param dbus Number of Distributed bus bit to map input to, -1 for no mapping
 @param irq External interrupt mapping, 0 = no interrupt, 1 = mapped to interrupt
 @param seqtrig Number of sequence RAM trigger, -1 for no trigger 
+@param mask Sequence mask enable/disable field
 */
-int EvgSetBPinMap(volatile struct MrfEgRegs *pEg, int bp, int trig, int dbus, int irq, int seqtrig)
+int EvgSetBPinMap(volatile struct MrfEgRegs *pEg, int bp, int trig, int dbus, int irq, int seqtrig, int mask)
 {
   int map = 0;
 
@@ -1444,6 +1490,9 @@ int EvgSetBPinMap(volatile struct MrfEgRegs *pEg, int bp, int trig, int dbus, in
   if (seqtrig >= 0)
     map |= (1 << (C_EVG_INMAP_SEQTRIG_BASE + seqtrig));
 
+  if (mask >= 0)
+    map |= ((mask & 0x00ff) << C_EVG_INMAP_SEQMASK);
+  
   pEg->BPInMap[bp] = be32_to_cpu(map);
 
   return 0;
@@ -1552,14 +1601,15 @@ void EvgBPinDump(volatile struct MrfEgRegs *pEg)
   for (bp = 0; bp < EVG_MAX_BPIN_MAP; bp++)
     {
       int map = be32_to_cpu(pEg->BPInMap[bp]); 
-      DEBUG_PRINTF("BPIn%d Mapped to Trig %08x, DBus %02x, IRQ %d, seqtrig %d\n", bp,
+      DEBUG_PRINTF("BPIn%d Mapped to Trig %08x, DBus %02x, IRQ %d, seqtrig %d, seqmask %02x\n", bp,
 		   (map >> C_EVG_INMAP_TRIG_BASE)
 		   & ((1 << EVG_MAX_TRIGGERS) - 1),
 		   (map >> C_EVG_INMAP_DBUS_BASE)
 		   & ((1 << EVG_DBUS_BITS) - 1),
 		   (map >> C_EVG_INMAP_IRQ) & 1,
 		   (map >> C_EVG_INMAP_SEQTRIG_BASE)
-		   & ((1 << EVG_MAX_SEQRAMS) - 1));
+		   & ((1 << EVG_MAX_SEQRAMS) - 1),
+		   (map >> C_EVG_INMAP_SEQMASK) & 0x00ff);
     }
 }
 
