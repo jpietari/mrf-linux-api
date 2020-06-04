@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
   if (argc > 4)
     map1 = strtol(argv[4], NULL, 0);
   else
-    map1 = 0x3f;
+    map1 = 0x3d;
   
   if (argc > 3)
     {
