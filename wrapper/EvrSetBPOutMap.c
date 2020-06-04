@@ -14,11 +14,12 @@ int main(int argc, char *argv[])
   int              fdEr;
   int              i;
   int              output;
-  int              map;
+  int              map0;
+  int              map1;
 
   if (argc < 4)
     {
-      printf("Usage: %s /dev/era3 <output> <map>\n", argv[0]);
+      printf("Usage: %s /dev/era3 <output> <map 0> [<map 1>]\n", argv[0]);
       return -1;
     }
 
@@ -26,11 +27,16 @@ int main(int argc, char *argv[])
   if (fdEr == -1)
     return errno;
 
+  if (argc > 4)
+    map1 = strtol(argv[4], NULL, 0);
+  else
+    map1 = 0x3f;
+  
   if (argc > 3)
     {
-      output = atoi(argv[2]);
-      map = atoi(argv[3]);
-      i = EvrSetBPOutMap(pEr, output, map);
+      output = strtol(argv[2], NULL, 0);
+      map0 = strtol(argv[3], NULL, 0);
+      i = EvrSetBPOutMap(pEr, output, map0 + ((map1 & 0xff) << 8));
     }
 
   EvrClose(fdEr);
