@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
   int              i;
   int              pol;
 
-  if (argc < 4)
+  if (argc < 3)
     {
       printf("Usage: %s /dev/era3 <polarity>\n", argv[0]);
       return -1;
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
   if (fdEr == -1)
     return errno;
 
-  if (argc > 3)
+  if (argc > 2)
     {
       pol = atoi(argv[2]);
       i = EvrSetPrescalerPolarity(pEr, pol);
