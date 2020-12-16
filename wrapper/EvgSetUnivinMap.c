@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
   if (argc < 8)
     {
-      printf("Usage: %s /dev/ega3 <univ> <trig> <dbus> <irq> <seqtrig>\n", argv[0]);
+      printf("Usage: %s /dev/ega3 <univ> <trig> <dbus> <irq> <seqtrig> <mask>\n", argv[0]);
       return -1;
     }
 

@@ -81,19 +81,49 @@ int EvrOpenWindow(struct MrfErRegs **pEr, char *device_name, int mem_window)
 /**
 Opens evr device and mmaps the register map into user space.
 @param pEr Pointer to pointer of memory mapped MrfErRegs structure.
-@param device_name Name of device e.g. /dev/era3.
+@param device_name Name of device e.g. /dev/era3. With EVM the two internal EVRs can be accessed with /dev/ega3.evrd and /dev/ega3.evru
 @return Returns file descriptor of opened file, -1 on error.
 */
 int EvrOpen(struct MrfErRegs **pEr, char *device_name)
 {
   int fd;
+  char *subdev;
+  int offset = 0;
 
-  fd = EvrOpenWindow(pEr, device_name, EVR_CPCI230_MEM_WINDOW);
+  subdev = strstr(device_name, ".evrd");
+  if (subdev != NULL)
+    {
+      *subdev = 0; /* cut device name */
+      offset = 0x20000;
+    }
+  else
+    {
+      subdev = strstr(device_name, ".evru");
+      if (subdev != NULL)
+	{
+	  *subdev = 0; /* cut device name */
+	  offset = 0x30000;
+	}
+    } 
+
+  fd = EvrOpenWindow(pEr, device_name, EVR_CPCI300TG_MEM_WINDOW);
+  if (fd == -1)
+    {
+      fd = EvrOpenWindow(pEr, device_name, EVR_MEM_WINDOW);
+      if (fd == -1)
+	{
+	  fd = EvrOpenWindow(pEr, device_name, EVR_CPCI230_MEM_WINDOW);
+	}
+    }
+
+  *pEr = (struct MrfErRegs *) ((void *) (*pEr) + offset); 
+  
   if (fd != -1)
     {
       /* Put device in BE mode */
       (*pEr)->Control = ((*pEr)->Control) & ~0x02000002;
     }
+
   return fd;
 }
 
