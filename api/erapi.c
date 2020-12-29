@@ -1072,8 +1072,8 @@ int EvrSetPulseMask(volatile struct MrfErRegs *pEr, int pulse, int mask, int ena
   result = be32_to_cpu(pEr->Pulse[pulse].Control);
 
   result &= 0x0000ffff;
-  result |= ((mask & 0x00ff) << 24);
-  result |= ((enable & 0x00ff) << 16);
+  result |= ((mask & 0x00ff) << 28);
+  result |= ((enable & 0x00ff) << 20);
 
   pEr->Pulse[pulse].Control = be32_to_cpu(result);
 

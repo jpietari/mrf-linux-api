@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
   int              i;
   int              prescaler, trigs;
 
-  if (argc < 5)
+  if (argc < 4)
     {
       printf("Usage: %s /dev/era3 <prescaler> <trigs>\n", argv[0]);
       return -1;
