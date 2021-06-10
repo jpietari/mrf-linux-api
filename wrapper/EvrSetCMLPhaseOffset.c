@@ -7,38 +7,33 @@
 #include <sys/ioctl.h>
 #include <signal.h>
 #include "../api/erapi.h"
-#include "../api/fracdiv.h"
 
 int main(int argc, char *argv[])
 {
   struct MrfErRegs *pEr;
   int              fdEr;
-  int              i;
-  double           freq;
-  
+  int              ch, i;
+
   if (argc < 2)
     {
-      printf("Usage: %s /dev/era3 [<event clock frequency (MHz)>]\n", argv[0]);
+      printf("Usage: %s /dev/era3 <channel> [<phase>]\n", argv[0]);
       printf("Assuming: /dev/era3\n");
       argv[1] = "/dev/era3";
     }
 
   fdEr = EvrOpen(&pEr, argv[1]);
+  if (fdEr == -1)
+    return errno;
 
-  if (argc > 2)
+  if (argc > 3)
     {
-      freq = atof(argv[2]);
-      i = freq_to_cw(freq);
-      if (fdEr != -1)
-	{
-	  EvrSetFracDiv(pEr, freq_to_cw(freq));
-	  i = EvrGetFracDiv(pEr);
-
-	  EvrClose(fdEr);
-	}
+      ch = atoi(argv[2]);
+      i = strtol(argv[3], NULL, 0) & 0xFFF;
+      i = EvrSetCMLPhaseOffset(pEr, ch, i);
+      printf("%d\n", i);
     }
-
-  printf("0x%08x %f\n", i, cw_to_freq(i));
+  
+  EvrClose(fdEr);
 
   return 0;
 }

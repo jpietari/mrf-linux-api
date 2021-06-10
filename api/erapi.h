@@ -95,7 +95,7 @@ struct CMLStruct {
 		      cPCI-EVRTG-300 */
   u32  SamplePos;  /* Pattern output sample lenght in event clock
 		      cycles */
-  u32  Resv;
+  u32  PhaseOffset; /* Phase offset in event clock/2560 steps */
 };
 
 struct MapRamItemStruct {
@@ -219,6 +219,7 @@ struct MrfErRegs {
 #define C_EVR_CTRL_TXLOOPBACK       29
 #define C_EVR_CTRL_RXLOOPBACK       28
 #define C_EVR_CTRL_OUTEN            27
+#define C_EVR_CTRL_GUNTX_INH_OVRDE  24
 #define C_EVR_CTRL_DC_ENABLE        22
 #define C_EVR_CTRL_PRESC_POLARITY   15
 #define C_EVR_CTRL_TS_CLOCK_DBUS    14
@@ -320,7 +321,9 @@ struct MrfErRegs {
 #define C_EVR_ECP3_DPHASE         8
 #define C_EVR_ECP3_DPHASE_MASK    15
 #define C_EVR_ECP3_DELAY_STATUS   0
-/* -- CML Control Register bit mappings */
+/* -- CML Control Register bit mappings */#
+#define C_EVR_CMLCTRL_MODE_RXPOLARITY (0x2000)
+#define C_EVR_CMLCTRL_MODE_TXPOLARITY (0x1000)
 #define C_EVR_CMLCTRL_MODE_GUNTX200 (0x0400)
 #define C_EVR_CMLCTRL_MODE_GUNTX300 (0x0800)
 #define C_EVR_CMLCTRL_MODE_PATTERN  (0x0020)
@@ -498,8 +501,12 @@ int EvrGetTxSegBufStatus(volatile struct MrfErRegs *pEr);
 int EvrSendTxSegBuf(volatile struct MrfErRegs *pEr, char *dbuf, int segment, int size);
 int EvrGetFormFactor(volatile struct MrfErRegs *pEr);
 int EvrSetFineDelay(volatile struct MrfErRegs *pEr, int channel, int delay);
+int EvrGetCMLEnable(volatile struct MrfErRegs *pEr, int channel);
 int EvrCMLEnable(volatile struct MrfErRegs *pEr, int channel, int state);
 int EvrSetCMLMode(volatile struct MrfErRegs *pEr, int channel, int mode);
+int EvrSetCMLPhaseOffset(volatile struct MrfErRegs *pEr, int channel, int offset);
+int EvrGetGunTxInhibitOverride(volatile struct MrfErRegs *pEr);
+int EvrSetGunTxInhibitOverride(volatile struct MrfErRegs *pEr, int override);
 int EvrSetIntClkMode(volatile struct MrfErRegs *pEr, int enable);
 int EvrSetTargetDelay(volatile struct MrfErRegs *pEr, int delay);
 int EvrGetTargetDelay(volatile struct MrfErRegs *pEr);

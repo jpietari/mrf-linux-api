@@ -72,7 +72,11 @@ EvrSWEventEnable \
 EvrUnivDlyEnable \
 EvrUnivDlySetDelay \
 FctDumpStatus \
-FctGetViolation
+FctGetViolation \
+EvrCMLEnable \
+EvrSetCMLMode \
+EvrSetCMLPhaseOffset \
+EvrSetGunTxInhibitOverride
 
 all: $(WRAPPERS) doc
 

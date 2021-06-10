@@ -2496,7 +2496,30 @@ int EvrSetFineDelay(volatile struct MrfErRegs *pEr, int channel, int delay)
   return be32_to_cpu(pEr->FineDelay[channel]);
 }
 
-/** @private */
+/**
+Get CML Output enable state
+
+@param pEr Pointer to MrfErRegs structure
+@param channel Number of GTX/CML channel
+@return Enable state: 1 - enabled, 0 - disabled, -1 invalid channel
+*/
+int EvrGetCMLEnable(volatile struct MrfErRegs *pEr, int channel)
+{
+  int ctrl;
+
+  if (channel < 0 || channel >= EVR_MAX_CML_OUTPUTS)
+    return -1;
+
+  return be16_to_cpu(pEr->CML[channel].Control & (1 << C_EVR_CMLCTRL_ENABLE));
+}
+
+/**
+Enable CML Output
+
+@param pEr Pointer to MrfErRegs structure
+@param channel Number of GTX/CML channel
+@param state 4 - disable, 1 - enable
+*/
 int EvrCMLEnable(volatile struct MrfErRegs *pEr, int channel, int state)
 {
   int ctrl;
@@ -2518,10 +2541,21 @@ int EvrCMLEnable(volatile struct MrfErRegs *pEr, int channel, int state)
 
 
   pEr->CML[channel].Control = be16_to_cpu(ctrl);
-  return be16_to_cpu(pEr->CML[channel].Control);
+  return be16_to_cpu(pEr->CML[channel].Control & (1 << C_EVR_CMLCTRL_ENABLE));
 }
 
-/** @private */
+/** 
+Set CML operation mode.
+
+@param pEr Pointer to MrfErRegs structure
+@param channel Number of GTX/CML channel
+@param mode
+#define C_EVR_CMLCTRL_MODE_RXPOLARITY (0x2000)
+#define C_EVR_CMLCTRL_MODE_TXPOLARITY (0x1000)
+#define C_EVR_CMLCTRL_MODE_GUNTX200 (0x0400)
+#define C_EVR_CMLCTRL_MODE_GUNTX300 (0x0800)
+#define C_EVR_CMLCTRL_MODE_PATTERN  (0x0020)
+*/
 int EvrSetCMLMode(volatile struct MrfErRegs *pEr, int channel, int mode)
 {
   int ctrl;
@@ -2530,12 +2564,57 @@ int EvrSetCMLMode(volatile struct MrfErRegs *pEr, int channel, int mode)
     return -1;
 
   ctrl = be16_to_cpu(pEr->CML[channel].Control);
-  ctrl &= ~(C_EVR_CMLCTRL_MODE_GUNTX200 | C_EVR_CMLCTRL_MODE_GUNTX300 |
+  ctrl &= ~(C_EVR_CMLCTRL_MODE_RXPOLARITY | C_EVR_CMLCTRL_MODE_TXPOLARITY |
+	    C_EVR_CMLCTRL_MODE_GUNTX200 | C_EVR_CMLCTRL_MODE_GUNTX300 |
 	    C_EVR_CMLCTRL_MODE_PATTERN);
   ctrl |= mode;
 
   pEr->CML[channel].Control = be16_to_cpu(ctrl);
   return be16_to_cpu(pEr->CML[channel].Control);
+}
+
+/**
+Set CML Output Phase Offset.
+
+@param pEr Pointer to MrfErRegs structure
+@param channel Number of GTX/CML channel
+@param offset Phase offset in event clock/2560 steps, minimum offset 0, maximum 4195
+*/
+int EvrSetCMLPhaseOffset(volatile struct MrfErRegs *pEr, int channel, int offset)
+{
+  if (channel < 0 || channel >= EVR_MAX_CML_OUTPUTS)
+    return -1;
+
+  pEr->CML[channel].PhaseOffset = be32_to_cpu(offset);
+  return be32_to_cpu(pEr->CML[channel].PhaseOffset);
+}
+
+/**
+Get GUN-TX hardware inhibit override state.
+
+@param pEr Pointer to MrfErRegs structure
+@return Returns override state, 0 - hardware inhibit allowed, non-zero - hardware inhibit override.
+*/
+int EvrGetGunTxInhibitOverride(volatile struct MrfErRegs *pEr)
+{
+  return be32_to_cpu(pEr->Control & be32_to_cpu(1 << C_EVR_CTRL_GUNTX_INH_OVRDE));
+}
+
+/**
+Enable/disable GUN-TX hardware inhibit input (UNIVIN0).
+
+@param pEr Pointer to MrfErRegs structure
+@param override 0 - enable hardware input, 1 - disable hardware input (override)
+@return Returns state read back from EVR.
+*/
+int EvrSetGunTxInhibitOverride(volatile struct MrfErRegs *pEr, int override)
+{
+  if (override)
+    pEr->Control |= be32_to_cpu(1 << C_EVR_CTRL_GUNTX_INH_OVRDE);
+  else
+    pEr->Control &= be32_to_cpu(~(1 << C_EVR_CTRL_GUNTX_INH_OVRDE));
+  
+  return EvrGetGunTxInhibitOverride(pEr);
 }
 
 /**
