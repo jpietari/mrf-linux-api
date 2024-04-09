@@ -921,6 +921,70 @@ int EvgSeqRamControl(volatile struct MrfEgRegs *pEg, int ram, int enable, int si
 }
 					  
 /**
+Set the number of sequence repetitions for a sequence RAM (lower 32-bits).
+
+@param pEg Pointer to MrfEgRegs structure
+@param ram RAM number
+@param count Desired number of sequence repetitions. Set to 0 for infinite repetitions.
+ */
+int EvgSeqRamSetRepeat(volatile struct MrfEgRegs *pEg, int ram, unsigned int count)
+{
+  if (ram < 0 || ram >= EVG_SEQRAMS)
+    return -1;
+
+  pEg->SeqRamRepeatLow[ram] = be32_to_cpu(count);
+  
+  return 0;
+}
+
+/**
+Set the higher 32-bits of the number of sequence repetitions for a sequence RAM.
+
+@param pEg Pointer to MrfEgRegs structure
+@param ram RAM number
+@param count Desired number of sequence repetitions. Set to 0 for infinite repetitions.
+ */
+int EvgSeqRamSetRepeatHigh(volatile struct MrfEgRegs *pEg, int ram, unsigned int count)
+{
+  if (ram < 0 || ram >= EVG_SEQRAMS)
+    return -1;
+
+  pEg->SeqRamRepeatHigh[ram] = be32_to_cpu(count);
+  
+  return 0;
+}
+
+/**
+Get current setting of the number of sequence repetitions for a sequence RAM (lower 32-bits).
+
+@param pEg Pointer to MrfEgRegs structure
+@param ram RAM number
+@return 32-bit value of the sequence repetition setting
+ */
+unsigned int EvgSeqRamGetRepeat(volatile struct MrfEgRegs *pEg, int ram)
+{
+  if (ram < 0 || ram >= EVG_SEQRAMS)
+    return -1;
+
+  return be32_to_cpu(pEg->SeqRamRepeatLow[ram]);
+}
+
+/**
+Get current setting of the number of sequence repetitions for a sequence RAM (higher 32-bits).
+
+@param pEg Pointer to MrfEgRegs structure
+@param ram RAM number
+@return 32-bit value of the sequence repetition setting
+ */
+unsigned int EvgSeqRamGetRepeatHigh(volatile struct MrfEgRegs *pEg, int ram)
+{
+  if (ram < 0 || ram >= EVG_SEQRAMS)
+    return -1;
+
+  return be32_to_cpu(pEg->SeqRamRepeatHigh[ram]);
+}
+
+/**
 Software trigger sequence RAM.
 
 @param pEg Pointer to MrfEgRegs structure
@@ -963,6 +1027,36 @@ void EvgSeqRamStatus(volatile struct MrfEgRegs *pEg, int ram)
   DEBUG_PRINTF(" Trigsel %02x Mask %02x\n",
 	       (control >> C_EVG_SQRC_TRIGSEL_LOW) & C_EVG_SEQTRIG_MAX,
 	       (control >> 8) & 0x00ff);
+}
+
+/**
+@brief Read sequence start counter.
+
+@param pEg Pointer to MrfEgRegs structure
+@param ram RAM number
+@return 32-bit value of sequence start counter
+ */
+unsigned int EvgSeqRamGetStartCnt(volatile struct MrfEgRegs *pEg, int ram)
+{
+  if (ram < 0 || ram >= EVG_SEQRAMS)
+    return -1;
+
+  return be32_to_cpu(pEg->SeqRamStartCnt[ram]);
+}
+
+/**
+@brief Read sequence end counter.
+
+@param pEg Pointer to MrfEgRegs structure
+@param ram RAM number
+@return 32-bit value of sequence end counter
+ */
+unsigned int EvgSeqRamGetEndCnt(volatile struct MrfEgRegs *pEg, int ram)
+{
+  if (ram < 0 || ram >= EVG_SEQRAMS)
+    return -1;
+
+  return be32_to_cpu(pEg->SeqRamEndCnt[ram]);
 }
 
 /**

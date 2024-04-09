@@ -111,7 +111,11 @@ FctGetViolation \
 EvrCMLEnable \
 EvrSetCMLMode \
 EvrSetCMLPhaseOffset \
-EvrSetGunTxInhibitOverride
+EvrSetGunTxInhibitOverride \
+EvgSeqRamSetRepeat \
+EvgSeqRamGetRepeat \
+EvgSeqRamGetStartCnt \
+EvgSeqRamGetEndCnt \
 
 all: $(WRAPPERS)
 
