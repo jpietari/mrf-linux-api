@@ -285,6 +285,7 @@ struct MrfErRegs {
 #define C_EVR_TXDATABUF_SIZELOW    2
 /* -- Clock Control Register bit mapppings */
 #define C_EVR_CLKCTRL_PLLL          31
+#define C_EVR_CLKCTRL_BWSEL         28
 #define C_EVR_CLKCTRL_INT_CLK_MODE  25
 #define C_EVR_CLKCTRL_RECDCM_RUN    15
 #define C_EVR_CLKCTRL_RECDCM_INITD  14
@@ -510,6 +511,7 @@ int EvrSetCMLPhaseOffset(volatile struct MrfErRegs *pEr, int channel, int offset
 int EvrGetGunTxInhibitOverride(volatile struct MrfErRegs *pEr);
 int EvrSetGunTxInhibitOverride(volatile struct MrfErRegs *pEr, int override);
 int EvrSetIntClkMode(volatile struct MrfErRegs *pEr, int enable);
+void EvrDumpClockControl(volatile struct MrfErRegs *pEr);
 int EvrSetTargetDelay(volatile struct MrfErRegs *pEr, int delay);
 int EvrGetTargetDelay(volatile struct MrfErRegs *pEr);
 int EvrSWEventEnable(volatile struct MrfErRegs *pEr, int state);

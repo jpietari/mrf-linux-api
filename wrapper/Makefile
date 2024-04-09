@@ -10,10 +10,15 @@ APIOBJECTS := $(APIDIR)/egapi.o $(APIDIR)/erapi.o $(APIDIR)/fctapi.o \
 
 WRAPPERS := \
 EvgFWVersion \
+EvgClearIrqFlags \
+EvgIrqEnable \
+EvgDumpClockControl \
+EvgDumpStatus \
 EvgEnable \
 EvgSystemMasterEnable \
 EvgBeaconEnable \
 EvgRxEnable \
+EvgGetFracDiv \
 EvgGetViolation \
 EvgSendSWEvent \
 EvgSWEventEnable \
@@ -48,10 +53,12 @@ EvgSeqRamControl \
 EvgTBinDump \
 EvgUnivinDump \
 EvgSetTriggerEvent \
+EvrFWVersion \
 EvrClearFIFO \
 EvrClearLog \
 EvrClearPulseMap \
 EvrDCEnable \
+EvrDumpClockControl \
 EvrDumpBPOutMap \
 EvrDumpFIFO \
 EvrDumpFPOutMap \
@@ -59,10 +66,12 @@ EvrDumpDC \
 EvrDumpLog \
 EvrDumpMapRam \
 EvrDumpPulses \
+EvrDumpStatus \
 EvrDumpTBOutMap \
 EvrDumpUnivOutMap \
 EvrEnable \
 EvrEnableEventForwarding \
+EvrGetFracDiv \
 EvrGetSecondsCounter \
 EvrGetSecondsLatch \
 EvrGetTimestampCounter \
@@ -73,6 +82,7 @@ EvrOutputEnable \
 EvrSendSWEvent \
 EvrSeqRamControl \
 EvrSeqRamDump \
+EvrSeqRamStatus \
 EvrSeqRamSWTrig \
 EvrSetBackDBus \
 EvrSetBackEvent \
