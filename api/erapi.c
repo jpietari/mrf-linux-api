@@ -2966,3 +2966,33 @@ int EvrRTMUnivSetDelay(volatile struct MrfErRegs *pEr, int dlymod, int dly)
   else
     return -1;
 }
+
+/**
+Reads an event counter for a specified event code.
+
+@param pEr Pointer to MrfErRegs structure
+@param code Event code
+@return 32-bit value of the event counter
+ */
+unsigned int EvrGetEventCount(volatile struct MrfErRegs *pEr, int code)
+{
+  if (code < 0 || code > EVR_MAX_EVENT_CODE)
+    return -1;
+
+  return be32_to_cpu(pEr->EventCounters[code]);
+}
+
+/**
+Reads pulse counter for a specified Pulse Generator.
+
+@param pEr Pointer to MrfErRegs structure
+@param pulse Pulse Generator index
+@return 32-bit value of the pulse counter
+ */
+unsigned int EvrGetPulseCount(volatile struct MrfErRegs *pEr, int pulse)
+{
+  if (pulse < 0 || pulse > EVR_MAX_PULSES-1)
+    return -1;
+
+  return be32_to_cpu(pEr->PulseCounters[pulse]);
+}

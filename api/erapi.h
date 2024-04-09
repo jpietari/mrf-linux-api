@@ -190,7 +190,9 @@ struct MrfErRegs {
   struct MapRamItemStruct MapRam[EVR_MAPRAMS][EVR_MAX_EVENT_CODE+1];
                                             /* 4000-4FFF: Map RAM 1 */
                                             /* 5000-5FFF: Map RAM 2 */
-  u32  Resv0x6000[(0x8000-0x6000)/4];       /* 6000-7FFF: Reserved */
+  u32  EventCounters[EVR_MAX_EVENT_CODE+1]; /* 6000-63FF: 32-bit counter for each event */
+  u32  PulseCounters[EVR_MAX_PULSES];       /* 6400-647F: 32-bit counter for each Pulse Generator */
+  u32  Resv0x6400[(0x8000-0x6480)/4];       /* 6480-7FFF: Reserved */
   u32  ConfigROM[(0x8100-0x8000)/4];        /* 8000-80FF: Reserved */
   u32  ConfigRAM[(0x8200-0x8100)/4];        /* 8100-81FF: Reserved */
   u32  SFPEEPROM[(0x8300-0x8200)/4];        /* 8200-82FF: Reserved */
@@ -526,3 +528,5 @@ int EvrGetDCDelay(volatile struct MrfErRegs *pEr);
 int EvrGetDCIntDelay(volatile struct MrfErRegs *pEr);
 int EvrGetDCPathValue(volatile struct MrfErRegs *pEr);
 int EvrRTMUnivSetDelay(volatile struct MrfErRegs *pEr, int dlymod, int dly);
+unsigned int EvrGetEventCount(volatile struct MrfErRegs *pEr, int code);
+unsigned int EvrGetPulseCount(volatile struct MrfErRegs *pEr, int pulse);
