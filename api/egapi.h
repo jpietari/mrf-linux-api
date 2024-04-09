@@ -190,7 +190,7 @@ struct MrfEgRegs {
 /* -- Timestamp Generator Control Register bit mappings */
 #define C_EVG_TSCTRL_LOAD        1
 #define C_EVG_TSCTRL_ENABLE      0
-/* -- Clock Control Register bit mapppings */
+/* -- Clock Control Register bit mappings */
 #define C_EVG_CLKCTRL_RFSELMASK    0x07000000
 #define C_EVG_CLKCTRL_MAX_RFSEL    7
 #define C_EVG_CLKCTRL_RFSEL        24

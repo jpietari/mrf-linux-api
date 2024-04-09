@@ -94,7 +94,7 @@ int EvgOpen(struct MrfEgRegs **pEg, char *device_name)
 
 #ifdef __linux__
 /**
-Close EVG device opened with EvrOpen.
+Close EVG device opened with EvgOpen.
 @param fd File descriptor of EVG device returned by EvgOpen.
 @return Returns 0 on successful completion.
 */
@@ -772,7 +772,7 @@ int EvgSetSeqRamEvent(volatile struct MrfEgRegs *pEg, int ram, int pos, unsigned
 /**
 Get sequence RAM event timestamp.
 
-@param pEr Pointer to MrfEgRegs structure
+@param pEg Pointer to MrfEgRegs structure
 @param ram RAM number
 @param pos Sequence RAM position (0 to 2047)
 @return 32 bit timestamp of event at RAM position pos
@@ -924,7 +924,7 @@ int EvgSeqRamControl(volatile struct MrfEgRegs *pEg, int ram, int enable, int si
 Software trigger sequence RAM.
 
 @param pEg Pointer to MrfEgRegs structure
-@param ram RAM number, 0 for EVR
+@param ram RAM number, 0 for EVG
 */
 int EvgSeqRamSWTrig(volatile struct MrfEgRegs *pEg, int ram)
 {
@@ -2012,7 +2012,7 @@ int EvgGetFormFactor(volatile struct MrfEgRegs *pEg)
 Assign user space interrupt handler for EVG interrupts.
 
 @param pEg Pointer to MrfEgRegs structure
-@param fd File descriptor of EVR device
+@param fd File descriptor of EVG device
 @param handler Pointer to user space interrupt handler
 */
 void EvgIrqAssignHandler(volatile struct MrfEgRegs *pEg, int fd,
@@ -2092,7 +2092,7 @@ int EvgIrqEnable(volatile struct MrfEgRegs *pEg, int mask)
 }
 
 /**
-Get interrupt flags for EVR.
+Get interrupt flags for EVG.
 
 @param pEg Pointer to MrfEgRegs structure
 @return Interrupt flags
