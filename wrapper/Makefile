@@ -8,7 +8,42 @@ APIHEADERS := $(APIDIR)/egapi.h $(APIDIR)/erapi.h $(APIDIR)/fctapi.h \
 APIOBJECTS := $(APIDIR)/egapi.o $(APIDIR)/erapi.o $(APIDIR)/fctapi.o \
               $(APIDIR)/fracdiv.o $(APIDIR)/sfpdiag.o
 
-WRAPPERS := EvFWVersion EvgEnable EvgSystemMasterEnable EvgBeaconEnable EvgRxEnable EvgGetViolation EvgSendSWEvent EvgSWEventEnable EvgSetMXCPrescaler EvgSetMXCTrigMap EvgSyncMxc EvgMXCDump EvgDBusDump EvgSetDBusMap EvgSetDBusEvent EvgSetACInput EvgSetACMap EvgACDump EvgSetRFInput EvgSetFracDiv EvgSetEventFrequency EvgSetSeqRamEvent EvgSeqRamStatus EvgSeqRamDump EvgSeqRamSWTrig EvgSetUnivinMap EvgSetFPinMap EvgFPinDump EvgSetBPinMap EvgSetTBinMap EvgSetUnivoutMap EvgSetBPoutMap EvgSetTBoutMap EvgTimestampEnable EvgTimestampLoad \
+WRAPPERS := \
+EvgFWVersion \
+EvgEnable \
+EvgSystemMasterEnable \
+EvgBeaconEnable \
+EvgRxEnable \
+EvgGetViolation \
+EvgSendSWEvent \
+EvgSWEventEnable \
+EvgSetMXCPrescaler \
+EvgSetMXCTrigMap \
+EvgSyncMxc \
+EvgMXCDump \
+EvgDBusDump \
+EvgSetDBusMap \
+EvgSetDBusEvent \
+EvgSetACInput \
+EvgSetACMap \
+EvgACDump \
+EvgSetRFInput \
+EvgSetFracDiv \
+EvgSetEventFrequency \
+EvgSetSeqRamEvent \
+EvgSeqRamStatus \
+EvgSeqRamDump \
+EvgSeqRamSWTrig \
+EvgSetUnivinMap \
+EvgSetFPinMap \
+EvgFPinDump \
+EvgSetBPinMap \
+EvgSetTBinMap \
+EvgSetUnivoutMap \
+EvgSetBPoutMap \
+EvgSetTBoutMap \
+EvgTimestampEnable \
+EvgTimestampLoad \
 EvgSeqRamControl \
 EvgTBinDump \
 EvgUnivinDump \
@@ -78,7 +113,7 @@ EvrSetCMLMode \
 EvrSetCMLPhaseOffset \
 EvrSetGunTxInhibitOverride
 
-all: $(WRAPPERS) doc
+all: $(WRAPPERS)
 
 wrappers: $(WRAPPERS)
 

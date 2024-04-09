@@ -5,7 +5,7 @@ TARGETS := mmap_test simple evrsetup evan_monitor evr_fifo_monitor
 
 APIOBJECTS := egapi.o erapi.o fctapi.o fracdiv.o sfpdiag.o
 
-all: $(TARGETS) $(APIOBJECTS) doc
+all: $(TARGETS) $(APIOBJECTS)
 
 % : %.c
 
@@ -16,7 +16,7 @@ all: $(TARGETS) $(APIOBJECTS) doc
 	$(CC) $(CFLAGS) -c $<
 
 clean:
-	rm -rf *.o *~ $(TARGETS)
+	rm -rf *.o *~ $(TARGETS) html latex
 
 doc:
 	doxygen

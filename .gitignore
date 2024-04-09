@@ -50,3 +50,23 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Wrapper executables
+wrapper/Ev*
+!wrapper/Ev*.*
+wrapper/Fct*
+!wrapper/Fct*.*
+
+# Api executables
+mmap_test
+simple
+evrsetup
+evan_monitor
+evr_fifo_monitor
+
+# Documentation
+latex
+html
+
+# Editor
+.vscode
