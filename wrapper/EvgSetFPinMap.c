@@ -32,11 +32,12 @@ int main(int argc, char *argv[])
   int              dbus;
   int              irq;
   int              seqtrig;
+  int              seqena;
   int              mask;
 
-  if (argc < 8)
+  if (argc < 9)
     {
-      printf("Usage: %s /dev/ega3 <fp> <trig> <dbus> <irq> <seqtrig> <mask>\n", argv[0]);
+      printf("Usage: %s /dev/ega3 <fp> <trig> <dbus> <irq> <seqtrig> <seqena> <mask>\n", argv[0]);
       return -1;
     }
 
@@ -51,8 +52,9 @@ int main(int argc, char *argv[])
       dbus = atoi(argv[4]);
       irq = atoi(argv[5]);
       seqtrig = atoi(argv[6]);
-      mask = atoi(argv[7]);
-      i = EvgSetFPinMap(pEg, fp, trig, dbus, irq, seqtrig, mask);
+      seqena = atoi(argv[7]);
+      mask = atoi(argv[8]);
+      i = EvgSetFPinMap(pEg, fp, trig, dbus, irq, seqtrig, seqena, mask);
     }
 
   EvgClose(fdEg);

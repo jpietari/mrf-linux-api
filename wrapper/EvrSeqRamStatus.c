@@ -1,3 +1,11 @@
+/**
+@file
+EvrSeqRamStatus <evr-device> <ram> - Display EVR Sequence RAM status.
+
+@param <evr-device> Device name of EVR (defaults to /dev/era3) if left blank.
+@param <ram> Sequence RAM number 0, 1
+*/
+
 #include <stdint.h>
 #include <endian.h>
 #include <byteswap.h>
@@ -8,6 +16,7 @@
 #include <signal.h>
 #include "../api/erapi.h"
 
+/** @private */
 int main(int argc, char *argv[])
 {
   struct MrfErRegs *pEr;
@@ -28,7 +37,7 @@ int main(int argc, char *argv[])
   if (argc > 2)
     {
       i = atoi(argv[2]);
-      EvrDumpMapRam(pEr, i);
+      EvrSeqRamStatus(pEr, i);
     }
  
   EvrClose(fdEr);

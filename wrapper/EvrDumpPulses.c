@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
   int              fdEr;
   int              i;
 
-  if (argc < 1)
+  if (argc < 2)
     {
       printf("Usage: %s /dev/era3 [<pulses>]\n", argv[0]);
       printf("Assuming: /dev/era3\n");

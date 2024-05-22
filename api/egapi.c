@@ -94,7 +94,7 @@ int EvgOpen(struct MrfEgRegs **pEg, char *device_name)
 
 #ifdef __linux__
 /**
-Close EVG device opened with EvrOpen.
+Close EVG device opened with EvgOpen.
 @param fd File descriptor of EVG device returned by EvgOpen.
 @return Returns 0 on successful completion.
 */
@@ -772,7 +772,7 @@ int EvgSetSeqRamEvent(volatile struct MrfEgRegs *pEg, int ram, int pos, unsigned
 /**
 Get sequence RAM event timestamp.
 
-@param pEr Pointer to MrfEgRegs structure
+@param pEg Pointer to MrfEgRegs structure
 @param ram RAM number
 @param pos Sequence RAM position (0 to 2047)
 @return 32 bit timestamp of event at RAM position pos
@@ -919,12 +919,76 @@ int EvgSeqRamControl(volatile struct MrfEgRegs *pEg, int ram, int enable, int si
 
   return 0;
 }
-					  
+
+/**
+Set the number of sequence repetitions for a sequence RAM (lower 32-bits).
+
+@param pEg Pointer to MrfEgRegs structure
+@param ram RAM number
+@param count Desired number of sequence repetitions. Set to 0 for infinite repetitions.
+ */
+int EvgSeqRamSetRepeat(volatile struct MrfEgRegs *pEg, int ram, unsigned int count)
+{
+  if (ram < 0 || ram >= EVG_SEQRAMS)
+    return -1;
+
+  pEg->SeqRamRepeatLow[ram] = be32_to_cpu(count);
+  
+  return 0;
+}
+
+/**
+Set the higher 32-bits of the number of sequence repetitions for a sequence RAM.
+
+@param pEg Pointer to MrfEgRegs structure
+@param ram RAM number
+@param count Desired number of sequence repetitions. Set to 0 for infinite repetitions.
+ */
+int EvgSeqRamSetRepeatHigh(volatile struct MrfEgRegs *pEg, int ram, unsigned int count)
+{
+  if (ram < 0 || ram >= EVG_SEQRAMS)
+    return -1;
+
+  pEg->SeqRamRepeatHigh[ram] = be32_to_cpu(count);
+  
+  return 0;
+}
+
+/**
+Get current setting of the number of sequence repetitions for a sequence RAM (lower 32-bits).
+
+@param pEg Pointer to MrfEgRegs structure
+@param ram RAM number
+@return 32-bit value of the sequence repetition setting
+ */
+unsigned int EvgSeqRamGetRepeat(volatile struct MrfEgRegs *pEg, int ram)
+{
+  if (ram < 0 || ram >= EVG_SEQRAMS)
+    return -1;
+
+  return be32_to_cpu(pEg->SeqRamRepeatLow[ram]);
+}
+
+/**
+Get current setting of the number of sequence repetitions for a sequence RAM (higher 32-bits).
+
+@param pEg Pointer to MrfEgRegs structure
+@param ram RAM number
+@return 32-bit value of the sequence repetition setting
+ */
+unsigned int EvgSeqRamGetRepeatHigh(volatile struct MrfEgRegs *pEg, int ram)
+{
+  if (ram < 0 || ram >= EVG_SEQRAMS)
+    return -1;
+
+  return be32_to_cpu(pEg->SeqRamRepeatHigh[ram]);
+}
+
 /**
 Software trigger sequence RAM.
 
 @param pEg Pointer to MrfEgRegs structure
-@param ram RAM number, 0 for EVR
+@param ram RAM number, 0 for EVG
 */
 int EvgSeqRamSWTrig(volatile struct MrfEgRegs *pEg, int ram)
 {
@@ -963,6 +1027,36 @@ void EvgSeqRamStatus(volatile struct MrfEgRegs *pEg, int ram)
   DEBUG_PRINTF(" Trigsel %02x Mask %02x\n",
 	       (control >> C_EVG_SQRC_TRIGSEL_LOW) & C_EVG_SEQTRIG_MAX,
 	       (control >> 8) & 0x00ff);
+}
+
+/**
+@brief Read sequence start counter.
+
+@param pEg Pointer to MrfEgRegs structure
+@param ram RAM number
+@return 32-bit value of sequence start counter
+ */
+unsigned int EvgSeqRamGetStartCnt(volatile struct MrfEgRegs *pEg, int ram)
+{
+  if (ram < 0 || ram >= EVG_SEQRAMS)
+    return -1;
+
+  return be32_to_cpu(pEg->SeqRamStartCnt[ram]);
+}
+
+/**
+@brief Read sequence end counter.
+
+@param pEg Pointer to MrfEgRegs structure
+@param ram RAM number
+@return 32-bit value of sequence end counter
+ */
+unsigned int EvgSeqRamGetEndCnt(volatile struct MrfEgRegs *pEg, int ram)
+{
+  if (ram < 0 || ram >= EVG_SEQRAMS)
+    return -1;
+
+  return be32_to_cpu(pEg->SeqRamEndCnt[ram]);
 }
 
 /**
@@ -1138,7 +1232,7 @@ Set up Front panel Input Mappings.
 @param seqtrig Number of sequence RAM trigger, -1 for no trigger 
 @param mask Sequence mask enable/disable field
 */
-int EvgSetFPinMap(volatile struct MrfEgRegs *pEg, int fpin, int trig, int dbus, int irq, int seqtrig, int mask)
+int EvgSetFPinMap(volatile struct MrfEgRegs *pEg, int fpin, int trig, int dbus, int irq, int seqtrig, int seqena, int mask)
 {
   int map = 0;
 
@@ -1154,6 +1248,9 @@ int EvgSetFPinMap(volatile struct MrfEgRegs *pEg, int fpin, int trig, int dbus, 
   if (seqtrig >= EVG_MAX_SEQRAMS)
     return -1;
 
+  if (seqena >= EVG_MAX_SEQRAMS)
+    return -1;
+
   if (trig >= 0)
     map |= (1 << (C_EVG_INMAP_TRIG_BASE + trig));
 
@@ -1165,6 +1262,9 @@ int EvgSetFPinMap(volatile struct MrfEgRegs *pEg, int fpin, int trig, int dbus, 
 
   if (seqtrig >= 0)
     map |= (1 << (C_EVG_INMAP_SEQTRIG_BASE + seqtrig));
+
+  if (seqena >= 0)
+    map |= (1 << (C_EVG_INMAP_SEQENA_BASE + seqena));
 
   if (mask >= 0)
     map |= ((mask & 0x00ff) << C_EVG_INMAP_SEQMASK);
@@ -1277,13 +1377,15 @@ void EvgFPinDump(volatile struct MrfEgRegs *pEg)
   for (fp = 0; fp < EVG_MAX_FPIN_MAP; fp++)
     {
       int map = be32_to_cpu(pEg->FPInMap[fp]); 
-      DEBUG_PRINTF("FPIn%d Mapped to Trig %08x, DBus %02x, IRQ %d, seqtrig %d, seqmask %02x\n", fp,
+      DEBUG_PRINTF("FPIn%d Mapped to Trig %08x, DBus %02x, IRQ %d, seqtrig %d, seqena %d, seqmask %02x\n", fp,
 		   (map >> C_EVG_INMAP_TRIG_BASE)
 		   & ((1 << EVG_MAX_TRIGGERS) - 1),
 		   (map >> C_EVG_INMAP_DBUS_BASE)
 		   & ((1 << EVG_DBUS_BITS) - 1),
 		   (map >> C_EVG_INMAP_IRQ) & 1,
 		   (map >> C_EVG_INMAP_SEQTRIG_BASE)
+		   & ((1 << EVG_MAX_SEQRAMS) - 1),
+		   (map >> C_EVG_INMAP_SEQENA_BASE)
 		   & ((1 << EVG_MAX_SEQRAMS) - 1),
 		   (map >> C_EVG_INMAP_SEQMASK) & 0x00ff);
     }
@@ -2012,7 +2114,7 @@ int EvgGetFormFactor(volatile struct MrfEgRegs *pEg)
 Assign user space interrupt handler for EVG interrupts.
 
 @param pEg Pointer to MrfEgRegs structure
-@param fd File descriptor of EVR device
+@param fd File descriptor of EVG device
 @param handler Pointer to user space interrupt handler
 */
 void EvgIrqAssignHandler(volatile struct MrfEgRegs *pEg, int fd,
@@ -2092,7 +2194,7 @@ int EvgIrqEnable(volatile struct MrfEgRegs *pEg, int mask)
 }
 
 /**
-Get interrupt flags for EVR.
+Get interrupt flags for EVG.
 
 @param pEg Pointer to MrfEgRegs structure
 @return Interrupt flags
@@ -2179,4 +2281,106 @@ Get seconds value from timestamp generator.
 int EvgTimestampGet(volatile struct MrfEgRegs *pEg)
 {
   return be32_to_cpu(pEg->TimestampValue);
+}
+
+/**
+Dump the contents of the Clock Control Register
+
+@param pEg Pointer to MrfEgRegs structure
+*/
+void EvgDumpClockControl(volatile struct MrfEgRegs *pEg)
+{
+  int result = be32_to_cpu(pEg->ClockControl);
+  DEBUG_PRINTF("Clock Control %08x ", result);
+
+  if (result & (1 << C_EVG_CLKCTRL_PLLL))
+    DEBUG_PRINTF("PLLLOCK ");
+
+  switch ((result >> C_EVG_CLKCTRL_BWSEL) & 0x7)
+  {
+  case 0:
+    DEBUG_PRINTF("HM ");
+    break;
+  case 1:
+    DEBUG_PRINTF("HL ");
+    break;
+  case 2:
+    DEBUG_PRINTF("MH ");
+    break;
+  case 3:
+    DEBUG_PRINTF("MM ");
+    break;
+  case 4:
+    DEBUG_PRINTF("ML ");
+    break;
+  default: break;
+  }
+
+  switch ((result >> C_EVG_CLKCTRL_RFSEL) & 0x7)
+  {
+  case 0:
+    DEBUG_PRINTF("INTERNAL ");
+    break;
+  case 1:
+    DEBUG_PRINTF("EXTERNAL ");
+    break;
+  case 2:
+    DEBUG_PRINTF("PXIE100 ");
+    break;
+  case 4:
+    DEBUG_PRINTF("REC-FANOUT ");
+    break;
+  case 5:
+    DEBUG_PRINTF("COMB-FANOUT ");
+    break;
+  case 6:
+    DEBUG_PRINTF("PXIE10 ");
+    break;
+  case 7:
+    DEBUG_PRINTF("REC-HALVED ");
+    break;
+  default: break;
+  }
+
+  if (result & (1 << C_EVG_CLKCTRL_PHTOGG))
+    DEBUG_PRINTF("PHTOGG ");
+
+  uint8_t rfdiv = ((result >> C_EVG_CLKCTRL_DIV_LOW) & 0x3f) + 1;
+  if (rfdiv == 13)
+    DEBUG_PRINTF("RFDIV-OFF ");
+  else
+    DEBUG_PRINTF("RF/%d ", rfdiv);
+
+  if (result & (1 << C_EVG_CLKCTRL_CGLOCK))
+    DEBUG_PRINTF("CGLOCK ");
+
+  DEBUG_PRINTF("\n");
+}
+
+/**
+Display EVG status.
+@param pEg Pointer to MrfEgRegs structure
+*/
+void EvgDumpStatus(volatile struct MrfEgRegs *pEg)
+{
+  int result;
+
+  result = be32_to_cpu(pEg->Status);
+  DEBUG_PRINTF("Status %08x ", result);
+  DEBUG_PRINTF("\n");
+
+  result = be32_to_cpu(pEg->Control);
+  DEBUG_PRINTF("Control %08x ", result);
+  DEBUG_PRINTF("\n");
+
+  result = be32_to_cpu(pEg->IrqFlag);
+  DEBUG_PRINTF("IRQ Flags %08x ", result);
+  DEBUG_PRINTF("\n");
+
+  result = be32_to_cpu(pEg->IrqEnable);
+  DEBUG_PRINTF("IRQ Enable %08x ", result);
+  DEBUG_PRINTF("\n");
+
+  result = be32_to_cpu(pEg->DataBufControl);
+  DEBUG_PRINTF("DataBufControl %08x\n", result);
 }

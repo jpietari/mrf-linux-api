@@ -8,15 +8,57 @@ APIHEADERS := $(APIDIR)/egapi.h $(APIDIR)/erapi.h $(APIDIR)/fctapi.h \
 APIOBJECTS := $(APIDIR)/egapi.o $(APIDIR)/erapi.o $(APIDIR)/fctapi.o \
               $(APIDIR)/fracdiv.o $(APIDIR)/sfpdiag.o
 
-WRAPPERS := EvFWVersion EvgEnable EvgSystemMasterEnable EvgBeaconEnable EvgRxEnable EvgGetViolation EvgSendSWEvent EvgSWEventEnable EvgSetMXCPrescaler EvgSetMXCTrigMap EvgSyncMxc EvgMXCDump EvgDBusDump EvgSetDBusMap EvgSetDBusEvent EvgSetACInput EvgSetACMap EvgACDump EvgSetRFInput EvgSetFracDiv EvgSetEventFrequency EvgSetSeqRamEvent EvgSeqRamStatus EvgSeqRamDump EvgSeqRamSWTrig EvgSetUnivinMap EvgSetFPinMap EvgFPinDump EvgSetBPinMap EvgSetTBinMap EvgSetUnivoutMap EvgSetBPoutMap EvgSetTBoutMap EvgTimestampEnable EvgTimestampLoad \
+WRAPPERS := \
+EvgFWVersion \
+EvgClearIrqFlags \
+EvgIrqEnable \
+EvgDumpClockControl \
+EvgDumpStatus \
+EvgEnable \
+EvgSystemMasterEnable \
+EvgBeaconEnable \
+EvgRxEnable \
+EvgGetFracDiv \
+EvgGetViolation \
+EvgSendSWEvent \
+EvgSWEventEnable \
+EvgSetMXCPrescaler \
+EvgSetMXCTrigMap \
+EvgSyncMxc \
+EvgMXCDump \
+EvgDBusDump \
+EvgSetDBusMap \
+EvgSetDBusEvent \
+EvgSetACInput \
+EvgSetACMap \
+EvgACDump \
+EvgSetRFInput \
+EvgSetFracDiv \
+EvgSetEventFrequency \
+EvgSetSeqRamEvent \
+EvgSeqRamStatus \
+EvgSeqRamDump \
+EvgSeqRamSWTrig \
+EvgSetUnivinMap \
+EvgSetFPinMap \
+EvgFPinDump \
+EvgSetBPinMap \
+EvgSetTBinMap \
+EvgSetUnivoutMap \
+EvgSetBPoutMap \
+EvgSetTBoutMap \
+EvgTimestampEnable \
+EvgTimestampLoad \
 EvgSeqRamControl \
 EvgTBinDump \
 EvgUnivinDump \
 EvgSetTriggerEvent \
+EvrFWVersion \
 EvrClearFIFO \
 EvrClearLog \
 EvrClearPulseMap \
 EvrDCEnable \
+EvrDumpClockControl \
 EvrDumpBPOutMap \
 EvrDumpFIFO \
 EvrDumpFPOutMap \
@@ -24,10 +66,12 @@ EvrDumpDC \
 EvrDumpLog \
 EvrDumpMapRam \
 EvrDumpPulses \
+EvrDumpStatus \
 EvrDumpTBOutMap \
 EvrDumpUnivOutMap \
 EvrEnable \
 EvrEnableEventForwarding \
+EvrGetFracDiv \
 EvrGetSecondsCounter \
 EvrGetSecondsLatch \
 EvrGetTimestampCounter \
@@ -38,6 +82,7 @@ EvrOutputEnable \
 EvrSendSWEvent \
 EvrSeqRamControl \
 EvrSeqRamDump \
+EvrSeqRamStatus \
 EvrSeqRamSWTrig \
 EvrSetBackDBus \
 EvrSetBackEvent \
@@ -76,9 +121,15 @@ FctGetViolation \
 EvrCMLEnable \
 EvrSetCMLMode \
 EvrSetCMLPhaseOffset \
-EvrSetGunTxInhibitOverride
+EvrSetGunTxInhibitOverride \
+EvgSeqRamSetRepeat \
+EvgSeqRamGetRepeat \
+EvgSeqRamGetStartCnt \
+EvgSeqRamGetEndCnt \
+EvrGetEventCount \
+EvrGetPulseCount
 
-all: $(WRAPPERS) doc
+all: $(WRAPPERS)
 
 wrappers: $(WRAPPERS)
 

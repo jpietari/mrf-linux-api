@@ -2638,6 +2638,62 @@ int EvrSetIntClkMode(volatile struct MrfErRegs *pEr, int enable)
 }
 
 /**
+Dump the contents of the Clock Control Register
+
+@param pEr Pointer to MrfErRegs structure
+*/
+void EvrDumpClockControl(volatile struct MrfErRegs *pEr)
+{
+  int result = be32_to_cpu(pEr->ClockControl);
+  DEBUG_PRINTF("Clock Control %08x ", result);
+
+  if (result & (1 << C_EVR_CLKCTRL_PLLL))
+    DEBUG_PRINTF("PLLLOCK ");
+
+  switch ((result >> C_EVR_CLKCTRL_BWSEL) & 0x7)
+  {
+  case 0:
+    DEBUG_PRINTF("HM ");
+    break;
+  case 1:
+    DEBUG_PRINTF("HL ");
+    break;
+  case 2:
+    DEBUG_PRINTF("MH ");
+    break;
+  case 3:
+    DEBUG_PRINTF("MM ");
+    break;
+  case 4:
+    DEBUG_PRINTF("ML ");
+    break;
+  default: break;
+  }
+
+  switch ((result >> C_EVR_CLKCTRL_INT_CLK_MODE) & 0x3)
+  {
+  case 0:
+    DEBUG_PRINTF("UP-CONTINUE ");
+    break;
+  case 1:
+    DEBUG_PRINTF("LOCAL ");
+    break;
+  case 2:
+    DEBUG_PRINTF("UP-FALLBACK ");
+    break;
+  case 3:
+    DEBUG_PRINTF("UP-STOP ");
+    break;
+  default: break;
+  }
+  
+  if (result & (1 << C_EVR_CLKCTRL_CGLOCK))
+    DEBUG_PRINTF("CGLOCK ");
+
+  DEBUG_PRINTF("\n");
+}
+
+/**
 Set target delay. In delay compensation mode the target delay is the total system delay, in non-DC mode the target delay is the depth of the delay compensation FIFO.
 
 @param pEr Pointer to MrfErRegs structure
@@ -2965,4 +3021,34 @@ int EvrRTMUnivSetDelay(volatile struct MrfErRegs *pEr, int dlymod, int dly)
     }
   else
     return -1;
+}
+
+/**
+Reads an event counter for a specified event code.
+
+@param pEr Pointer to MrfErRegs structure
+@param code Event code
+@return 32-bit value of the event counter
+ */
+unsigned int EvrGetEventCount(volatile struct MrfErRegs *pEr, int code)
+{
+  if (code < 0 || code > EVR_MAX_EVENT_CODE)
+    return -1;
+
+  return be32_to_cpu(pEr->EventCounters[code]);
+}
+
+/**
+Reads pulse counter for a specified Pulse Generator.
+
+@param pEr Pointer to MrfErRegs structure
+@param pulse Pulse Generator index
+@return 32-bit value of the pulse counter
+ */
+unsigned int EvrGetPulseCount(volatile struct MrfErRegs *pEr, int pulse)
+{
+  if (pulse < 0 || pulse > EVR_MAX_PULSES-1)
+    return -1;
+
+  return be32_to_cpu(pEr->PulseCounters[pulse]);
 }

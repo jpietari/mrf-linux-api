@@ -54,19 +54,19 @@ void FctDumpStatus(volatile struct MrfFctRegs *pFct, double reffreq, int ports)
 {
   int i;
   
-  printf("Up DC Value      %08lx (%3.6f ns)\n",
+  printf("Up DC Value      %08x (%3.6f ns)\n",
 	 be32_to_cpu(pFct->UpDCValue),
 	 be32_to_cpu(pFct->UpDCValue)/(reffreq*65.536));
-  printf("RX FIFO DC Value %08lx (%3.6f ns)\n",
+  printf("RX FIFO DC Value %08x (%3.6f ns)\n",
 	 be32_to_cpu(pFct->FIFODCValue),
 	 be32_to_cpu(pFct->FIFODCValue)/(reffreq*65.536));
-  printf("Int. Delay Value %08lx (%3.6f ns)\n",
+  printf("Int. Delay Value %08x (%3.6f ns)\n",
 	 be32_to_cpu(pFct->IntDCValue),
 	 be32_to_cpu(pFct->IntDCValue)/(reffreq*65.536));
-  printf("RX FIFO Target   %08lx (%3.6f ns)\n",
+  printf("RX FIFO Target   %08x (%3.6f ns)\n",
 	 be32_to_cpu(pFct->RXFIFOTarget),
 	 be32_to_cpu(pFct->RXFIFOTarget)/(reffreq*65.536));
-  printf("Topolygy ID      %08lx\n",
+  printf("Topolygy ID      %08x\n",
 	 be32_to_cpu(pFct->TopologyID));
   
   printf("Link:     ");
@@ -91,7 +91,7 @@ void FctDumpStatus(volatile struct MrfFctRegs *pFct, double reffreq, int ports)
   for(i = 0; i < ports; i++)
     {
       if (be32_to_cpu(pFct->PortDCStatus[i]) > 0)
-	printf("Port %2d Status %d Loop Delay %08lx (%3.6f ns)\n", i+1,
+	printf("Port %2d Status %d Loop Delay %08x (%3.6f ns)\n", i+1,
 	       be32_to_cpu(pFct->PortDCStatus[i]),
 	       be32_to_cpu(pFct->PortDCValue[i]),
 	       be32_to_cpu(pFct->PortDCValue[i])/(reffreq*65.536));

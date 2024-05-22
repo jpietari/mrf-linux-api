@@ -113,7 +113,10 @@ struct MrfEgRegs {
   u32  RxInitPS;                            /* 0088: Initial value for RF Recovery DCM phase */
   u32  Resv0x008Cto0x0100[(0x100-0x08C)/4]; /* 008C-00FF: Reserved */
   u32  EventTrigger[EVG_MAX_TRIGGERS];      /* 0100-013F: Event Trigger Registers */
-  u32  Resv0x0140to0x017F[(0x180-0x140)/4]; /* 0140-017F: Reserved */
+  u32  SeqRamStartCnt[EVG_MAX_SEQRAMS];     /* 0140-014F: Sequence Start Counters */
+  u32  SeqRamEndCnt[EVG_MAX_SEQRAMS];       /* 0150-015F: Sequence End Counters */
+  u32  SeqRamRepeatLow[EVG_MAX_SEQRAMS];    /* 0160-016F: Sequence repetition settings (LSB) */
+  u32  SeqRamRepeatHigh[EVG_MAX_SEQRAMS];   /* 0170-017F: Sequence repetition settings (MSB) */
   struct MXCStruct MXC[EVG_MAX_MXCS];       /* 0180-01FF: Multiplexed Counter Prescalers */
   u32  Resv0x01C0to0x03FC[(0x400-0x200)/4]; /* 0200-03FF: Reserved */
   u16  FPOutMap[EVG_MAX_FPOUT_MAP];         /* 0400-041F: Front panel output mapping */
@@ -190,11 +193,14 @@ struct MrfEgRegs {
 /* -- Timestamp Generator Control Register bit mappings */
 #define C_EVG_TSCTRL_LOAD        1
 #define C_EVG_TSCTRL_ENABLE      0
-/* -- Clock Control Register bit mapppings */
+/* -- Clock Control Register bit mappings */
+#define C_EVG_CLKCTRL_PLLL         31
+#define C_EVG_CLKCTRL_BWSEL        28
+#define C_EVG_CLKCTRL_RFSEL        24
 #define C_EVG_CLKCTRL_RFSELMASK    0x07000000
 #define C_EVG_CLKCTRL_MAX_RFSEL    7
-#define C_EVG_CLKCTRL_RFSEL        24
 #define C_EVG_CLKCTRL_EXTRF        24
+#define C_EVG_CLKCTRL_PHTOGG       23
 #define C_EVG_CLKCTRL_DIV_HIGH     21
 #define C_EVG_CLKCTRL_DIV_LOW      16
 #define C_EVG_CLKCTRL_RECDCM_RUN    15
@@ -337,15 +343,21 @@ unsigned int EvgGetSeqRamTimestamp(volatile struct MrfEgRegs *pEg, int ram, int 
 int EvgGetSeqRamEvent(volatile struct MrfEgRegs *pEg, int ram, int pos);
 void EvgSeqRamDump(volatile struct MrfEgRegs *pEg, int ram);
 int EvgSeqRamControl(volatile struct MrfEgRegs *pEg, int ram, int enable, int single, int recycle, int reset, int trigsel, int mask);
+int EvgSeqRamSetRepeat(volatile struct MrfEgRegs *pEg, int ram, unsigned int count);
+int EvgSeqRamSetRepeatHigh(volatile struct MrfEgRegs *pEg, int ram, unsigned int count);
+unsigned int EvgSeqRamGetRepeat(volatile struct MrfEgRegs *pEg, int ram);
+unsigned int EvgSeqRamGetRepeatHigh(volatile struct MrfEgRegs *pEg, int ram);
 int EvgSeqRamSWTrig(volatile struct MrfEgRegs *pEg, int ram);
 void EvgSeqRamStatus(volatile struct MrfEgRegs *pEg, int ram);
+unsigned int EvgSeqRamGetStartCnt(volatile struct MrfEgRegs *pEg, int ram);
+unsigned int EvgSeqRamGetEndCnt(volatile struct MrfEgRegs *pEg, int ram);
 int EvgSetUnivinMap(volatile struct MrfEgRegs *pEg, int univ, int trig, int dbus, int irq, int seqtrig, int mask);
 int EvgGetUnivinMapTrigger(volatile struct MrfEgRegs *pEg, int univ);
 int EvgGetUnivinMapDBus(volatile struct MrfEgRegs *pEg, int univ);
 int EvgGetUnivinMapIrq(volatile struct MrfEgRegs *pEg, int univ);
 int EvgGetUnivinMapSeqtrig(volatile struct MrfEgRegs *pEg, int univ);
 void EvgUnivinDump(volatile struct MrfEgRegs *pEg);
-int EvgSetFPinMap(volatile struct MrfEgRegs *pEg, int univ, int trig, int dbus, int irq, int seqtrig, int mask);
+int EvgSetFPinMap(volatile struct MrfEgRegs *pEg, int univ, int trig, int dbus, int irq, int seqtrig, int seqena, int mask);
 int EvgGetFPinMapTrigger(volatile struct MrfEgRegs *pEg, int univ);
 int EvgGetFPinMapDBus(volatile struct MrfEgRegs *pEg, int univ);
 int EvgGetFPinMapIrq(volatile struct MrfEgRegs *pEg, int univ);
@@ -391,3 +403,5 @@ int EvgTimestampEnable(volatile struct MrfEgRegs *pEg, int enable);
 int EvgGetTimestampEnable(volatile struct MrfEgRegs *pEg);
 int EvgTimestampLoad(volatile struct MrfEgRegs *pEg, int timestamp);
 int EvgTimestampGet(volatile struct MrfEgRegs *pEg);
+void EvgDumpClockControl(volatile struct MrfEgRegs *pEg);
+void EvgDumpStatus(volatile struct MrfEgRegs *pEg);

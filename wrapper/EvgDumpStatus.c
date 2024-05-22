@@ -1,28 +1,20 @@
-/**
-@file
-EvFWVersion [ <evr/evg-device> ] - Display EVG/EVM/EVR Firmware Version information
-
-@param <evr/evg-device> Device name of EVG/EVM/EVR (defaults to /dev/ega3) if left blank.
-*/
-
 #include <stdint.h>
 #include <endian.h>
 #include <byteswap.h>
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/ioctl.h>
 #include <signal.h>
 #include "../api/egapi.h"
 
-/** @private */
 int main(int argc, char *argv[])
 {
   struct MrfEgRegs *pEg;
   int              fdEg;
   int              i;
-  char             c;
 
-  if (argc < 1)
+  if (argc < 2)
     {
       printf("Usage: %s /dev/ega3\n", argv[0]);
       printf("Assuming: /dev/ega3\n");
@@ -33,9 +25,8 @@ int main(int argc, char *argv[])
   if (fdEg == -1)
     return errno;
 
-  i = EvgFWVersion(pEg);
-  printf("%08x\n", i);
-
+  EvgDumpStatus(pEg);
+ 
   EvgClose(fdEg);
 
   return 0;
